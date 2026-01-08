@@ -160,7 +160,7 @@ pub fn generateElectraState(allocator: Allocator, pool: *Node.Pool, chain_config
 
     try beacon_state.commit();
 
-    return beacon_state;
+    return try BeaconState.fromValue(allocator, pool, .electra, beacon_state);
 }
 
 pub const TestCachedBeaconState = struct {

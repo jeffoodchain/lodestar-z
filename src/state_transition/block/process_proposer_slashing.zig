@@ -1,5 +1,9 @@
-const std = @import("std");
-const BeaconConfig = @import("config").BeaconConfig;
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++const std = @import("std");
++const BeaconConfig = @import("config").BeaconConfig;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const ForkSeq = @import("config").ForkSeq;
 const ForkTypes = @import("fork_types").ForkTypes;
 const BeaconState = @import("fork_types").BeaconState;

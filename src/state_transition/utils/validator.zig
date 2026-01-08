@@ -6,7 +6,11 @@ const Validator = types.phase0.Validator;
 
 const Epoch = types.primitive.Epoch.Type;
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
-const BeaconState = @import("fork_types").BeaconState;
+%%%%%%% Changes from base to side #1
+-const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
++const BeaconState = @import("fork_types").BeaconState;
++++++++ Contents of side #2
+const BeaconState = @import("../types/beacon_state.zig").BeaconState;
 const BeaconConfig = @import("config").BeaconConfig;
 const ForkSeq = @import("config").ForkSeq;
 const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;

@@ -106,10 +106,23 @@ pub fn ListCompositeTreeView(comptime ST: type) type {
             try Chunks.set(&self.base_view, index, value);
         }
 
+%%%%%%% Changes from base to side #1
++        pub fn setValue(self: *Self, index: usize, value: *const ST.Element.Type) !void {
++            const list_length = try self.length();
++            if (index >= list_length) return error.IndexOutOfBounds;
++            try Chunks.setValue(&self.base_view, index, value);
++        }
++
++++++++ Contents of side #2
         pub fn setValue(self: *Self, index: usize, value: *const ST.Element.Type) !void {
-            const list_length = try self.length();
-            if (index >= list_length) return error.IndexOutOfBounds;
-            try Chunks.setValue(&self.base_view, index, value);
+            const root = try ST.Element.tree.fromValue(self.base_view.pool, value);
+            errdefer self.base_view.pool.unref(root);
+            const child_view = try ST.Element.TreeView.init(
+                self.base_view.allocator,
+                self.base_view.pool,
+                root,
+            );
+            try self.set(index, child_view);
         }
 
         pub fn getAllReadonly(self: *Self, allocator: Allocator) ![]Element {
@@ -152,6 +165,17 @@ pub fn ListCompositeTreeView(comptime ST: type) type {
                 root,
             );
             errdefer child_view.deinit();
+            try self.push(child_view);
+        }
+
+        pub fn pushValue(self: *Self, value: *const ST.Element.Type) !void {
+            const child_root = try ST.Element.tree.fromValue(self.base_view.pool, value);
+            errdefer self.base_view.pool.unref(child_root);
+            const child_view = try ST.Element.TreeView.init(
+                self.base_view.allocator,
+                self.base_view.pool,
+                child_root,
+            );
             try self.push(child_view);
         }
 

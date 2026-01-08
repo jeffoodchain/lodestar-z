@@ -1,16 +1,36 @@
 const c = @import("constants");
 const COMPOUNDING_WITHDRAWAL_PREFIX = c.COMPOUNDING_WITHDRAWAL_PREFIX;
+%%%%%%% Changes from base to side #1
+-const types = @import("consensus_types");
++++++++ Contents of side #2
+const ct = @import("consensus_types");
 const MIN_ACTIVATION_BALANCE = @import("preset").preset.MIN_ACTIVATION_BALANCE;
 const GENESIS_SLOT = @import("preset").GENESIS_SLOT;
 const ForkSeq = @import("config").ForkSeq;
 const BeaconState = @import("fork_types").BeaconState;
 const ct = @import("consensus_types");
 
+%%%%%%% Changes from base to side #1
+-pub const WithdrawalCredentials = types.primitive.Root.Type;
+-pub const WithdrawalCredentialsLength = types.primitive.Root.length;
+-const BLSPubkey = types.primitive.BLSPubkey.Type;
+-const ValidatorIndex = types.primitive.ValidatorIndex.Type;
++pub const WithdrawalCredentials = ct.primitive.Root.Type;
++const BLSPubkey = ct.primitive.BLSPubkey.Type;
++const ValidatorIndex = ct.primitive.ValidatorIndex.Type;
++++++++ Contents of side #2
 pub const WithdrawalCredentials = ct.primitive.Root.Type;
+pub const WithdrawalCredentialsLength = ct.primitive.Root.length;
 const BLSPubkey = ct.primitive.BLSPubkey.Type;
 const ValidatorIndex = ct.primitive.ValidatorIndex.Type;
 
-const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;
+%%%%%%% Changes from base to side #1
+-const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;
++++++++ Contents of side #2
+const BeaconState = @import("../types/beacon_state.zig").BeaconState;
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const hasEth1WithdrawalCredential = @import("./capella.zig").hasEth1WithdrawalCredential;
 const G2_POINT_AT_INFINITY = @import("constants").G2_POINT_AT_INFINITY;
 

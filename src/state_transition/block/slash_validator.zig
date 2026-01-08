@@ -3,6 +3,10 @@ const ForkSeq = @import("config").ForkSeq;
 const types = @import("consensus_types");
 const preset = @import("preset").preset;
 const c = @import("constants");
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
 const BeaconState = @import("fork_types").BeaconState;
 const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;

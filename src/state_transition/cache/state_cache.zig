@@ -7,7 +7,11 @@ const EpochCacheRc = @import("./epoch_cache.zig").EpochCacheRc;
 const EpochCache = @import("./epoch_cache.zig").EpochCache;
 const EpochCacheImmutableData = @import("./epoch_cache.zig").EpochCacheImmutableData;
 const EpochCacheOpts = @import("./epoch_cache.zig").EpochCacheOpts;
-const AnyBeaconState = @import("fork_types").AnyBeaconState;
+%%%%%%% Changes from base to side #1
+-const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
++const AnyBeaconState = @import("fork_types").AnyBeaconState;
++++++++ Contents of side #2
+const BeaconState = @import("../types/beacon_state.zig").BeaconState;
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
 const CloneOpts = @import("ssz").BaseTreeView.CloneOpts;
 const SlashingsCache = @import("./slashings_cache.zig").SlashingsCache;
@@ -105,9 +109,13 @@ pub const CachedBeaconState = struct {
     pub fn deinit(self: *CachedBeaconState) void {
         // should not deinit config since we don't take ownership of it, it's singleton across applications
         self.epoch_cache_ref.release();
-        self.slashings_cache.deinit();
+%%%%%%% Changes from base to side #1
+-        self.state.deinit(self.allocator);
++        self.slashings_cache.deinit();
++        self.state.deinit();
+         self.allocator.destroy(self.state);
++++++++ Contents of side #2
         self.state.deinit();
-        self.allocator.destroy(self.state);
     }
 
     pub fn isSlashed(self: *const CachedBeaconState, index: ValidatorIndex) bool {
@@ -152,7 +160,11 @@ pub const CachedBeaconState = struct {
                 return error.SlotOutsideProposerLookahead;
             }
 
-            var proposer_lookahead = try self.state.proposerLookahead();
+%%%%%%% Changes from base to side #1
+-            const proposer_lookahead = self.state.proposerLookahead();
++            var proposer_lookahead = try self.state.proposerLookahead();
++++++++ Contents of side #2
+            const proposer_lookahead = try self.state.proposerLookahead();
             const epoch_offset = slot_epoch - lookahead_start_epoch;
             const slot_in_epoch = slot % preset_import.SLOTS_PER_EPOCH;
             const index = epoch_offset * preset_import.SLOTS_PER_EPOCH + slot_in_epoch;

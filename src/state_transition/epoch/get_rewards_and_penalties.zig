@@ -5,6 +5,10 @@ const BeaconConfig = @import("config").BeaconConfig;
 const BeaconState = @import("fork_types").BeaconState;
 const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;
 const attester_status = @import("../utils/attester_status.zig");
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const EpochTransitionCache = @import("../cache/epoch_transition_cache.zig").EpochTransitionCache;
 const preset = @import("preset").preset;
 const c = @import("constants");

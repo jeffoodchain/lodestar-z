@@ -4,6 +4,12 @@ const ForkSeq = @import("config").ForkSeq;
 const BeaconState = @import("fork_types").BeaconState;
 const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;
 const EpochTransitionCache = @import("../cache/epoch_transition_cache.zig").EpochTransitionCache;
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
+-const ForkSeq = @import("config").ForkSeq;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
+const ForkSeq = @import("config").ForkSeq;
 const decreaseBalance = @import("../utils//balance.zig").decreaseBalance;
 const EFFECTIVE_BALANCE_INCREMENT = preset.EFFECTIVE_BALANCE_INCREMENT;
 const PROPORTIONAL_SLASHING_MULTIPLIER = preset.PROPORTIONAL_SLASHING_MULTIPLIER;

@@ -1,4 +1,8 @@
 const std = @import("std");
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
 const ForkSeq = @import("config").ForkSeq;
 const BeaconConfig = @import("config").BeaconConfig;

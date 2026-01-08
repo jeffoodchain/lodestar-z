@@ -1,5 +1,9 @@
 const std = @import("std");
-const Allocator = std.mem.Allocator;
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++const Allocator = std.mem.Allocator;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const ForkSeq = @import("config").ForkSeq;
 const BeaconState = @import("fork_types").BeaconState;
 const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;

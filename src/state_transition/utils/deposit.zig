@@ -4,6 +4,10 @@ const BeaconState = @import("fork_types").BeaconState;
 const types = @import("consensus_types");
 const Eth1Data = types.phase0.Eth1Data.Type;
 const MAX_DEPOSITS = preset.MAX_DEPOSITS;
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 
 pub fn getEth1DepositCount(comptime fork: ForkSeq, state: *BeaconState(fork), eth1_data: ?*const Eth1Data) !u64 {
     const deposit_count: u64 = if (eth1_data) |d| d.deposit_count else blk: {

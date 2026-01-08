@@ -38,7 +38,14 @@ pub fn upgradeStateToElectra(
     // [EIP-7251]: add validators that are not yet active to pending balance deposits
     var pre_activation = std.ArrayList(ct.primitive.ValidatorIndex.Type).init(allocator);
     defer pre_activation.deinit();
-    const validators_slice = try state.validatorsSlice(allocator);
+%%%%%%% Changes from base to side #1
+-    const validators = state.validators().items;
+-    for (validators, 0..) |validator, validator_index| {
++    const validators_slice = try state.validatorsSlice(allocator);
++    defer allocator.free(validators_slice);
++    for (validators_slice, 0..) |validator, validator_index| {
++++++++ Contents of side #2
+    const validators_slice = try (try state.validators()).getAll(allocator);
     defer allocator.free(validators_slice);
     for (validators_slice, 0..) |validator, validator_index| {
         const activation_epoch = validator.activation_epoch;
@@ -51,10 +58,20 @@ pub fn upgradeStateToElectra(
         }
     }
 
+%%%%%%% Changes from base to side #1
+-    state.earliestExitEpoch().* = earliest_exit_epoch + 1;
+-    state.earliestConsolidationEpoch().* = computeActivationExitEpoch(current_epoch_pre);
+-    state.exitBalanceToConsume().* = getActivationExitChurnLimit(cached_state.getEpochCache());
+-    state.consolidationBalanceToConsume().* = getConsolidationChurnLimit(cached_state.getEpochCache());
++    try state.setEarliestExitEpoch(earliest_exit_epoch + 1);
++    try state.setEarliestConsolidationEpoch(computeActivationExitEpoch(current_epoch_pre));
++    try state.setExitBalanceToConsume(getActivationExitChurnLimit(epoch_cache));
++    try state.setConsolidationBalanceToConsume(getConsolidationChurnLimit(epoch_cache));
++++++++ Contents of side #2
     try state.setEarliestExitEpoch(earliest_exit_epoch + 1);
     try state.setEarliestConsolidationEpoch(computeActivationExitEpoch(current_epoch_pre));
-    try state.setExitBalanceToConsume(getActivationExitChurnLimit(epoch_cache));
-    try state.setConsolidationBalanceToConsume(getConsolidationChurnLimit(epoch_cache));
+    try state.setExitBalanceToConsume(getActivationExitChurnLimit(cached_state.getEpochCache()));
+    try state.setConsolidationBalanceToConsume(getConsolidationChurnLimit(cached_state.getEpochCache()));
 
     const sort_fn = struct {
         pub fn sort(validator_arr: []const ct.phase0.Validator.Type, a: ValidatorIndex, b: ValidatorIndex) bool {
@@ -74,7 +91,13 @@ pub fn upgradeStateToElectra(
         const balance = try balances.get(validator_index);
         try balances.set(validator_index, 0);
 
-        var validator = try validators.get(validator_index);
+%%%%%%% Changes from base to side #1
+-        const validator = &state.validators().items[validator_index];
+-        validator.effective_balance = 0;
++        var validator = try validators.get(validator_index);
++        try validator.set("effective_balance", 0);
++++++++ Contents of side #2
+        const validator = try validators.get(validator_index);
         try validator.set("effective_balance", 0);
         effective_balance_increments.items[validator_index] = 0;
         try validator.set("activation_eligibility_epoch", constants.FAR_FUTURE_EPOCH);

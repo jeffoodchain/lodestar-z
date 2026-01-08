@@ -1,9 +1,16 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const BeaconConfig = @import("config").BeaconConfig;
-const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;
-const BeaconState = @import("fork_types").BeaconState;
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
+-const ssz = @import("consensus_types");
++const BeaconConfig = @import("config").BeaconConfig;
++const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;
++const BeaconState = @import("fork_types").BeaconState;
++const ct = @import("consensus_types");
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const ct = @import("consensus_types");
+const toExecutionPayloadHeader = @import("../types/execution_payload.zig").toExecutionPayloadHeader;
 
 pub fn upgradeStateToCapella(
     allocator: Allocator,
@@ -58,15 +65,49 @@ pub fn upgradeStateToCapella(
     };
     try state.setFork(&new_fork);
 
-    var new_latest_execution_payload_header = ct.capella.ExecutionPayloadHeader.default_value;
-    var bellatrix_latest_execution_payload_header = ct.bellatrix.ExecutionPayloadHeader.default_value;
-    try bellatrix_state.latestExecutionPayloadHeader(allocator, &bellatrix_latest_execution_payload_header);
-    defer ct.bellatrix.ExecutionPayloadHeader.deinit(allocator, &bellatrix_latest_execution_payload_header);
+%%%%%%% Changes from base to side #1
+-    var capella_latest_execution_payload_header = ssz.capella.ExecutionPayloadHeader.default_value;
+-    const bellatrix_latest_execution_payload_header = bellatrix_state.latest_execution_payload_header;
++    var new_latest_execution_payload_header = ct.capella.ExecutionPayloadHeader.default_value;
++    var bellatrix_latest_execution_payload_header = ct.bellatrix.ExecutionPayloadHeader.default_value;
++    try bellatrix_state.latestExecutionPayloadHeader(allocator, &bellatrix_latest_execution_payload_header);
++    defer ct.bellatrix.ExecutionPayloadHeader.deinit(allocator, &bellatrix_latest_execution_payload_header);
++++++++ Contents of side #2
+    var capella_latest_execution_payload_header = ct.capella.ExecutionPayloadHeader.default_value;
+    const bellatrix_latest_execution_payload_header = try bellatrix_state.latestExecutionPayloadHeader(allocator);
+    defer bellatrix_latest_execution_payload_header.deinit(allocator);
+    if (bellatrix_latest_execution_payload_header != .bellatrix) {
+        return error.UnexpectedLatestExecutionPayloadHeaderType;
+    }
 
-    try ct.bellatrix.ExecutionPayloadHeader.clone(
+%%%%%%% Changes from base to side #1
+-    capella_latest_execution_payload_header.parent_hash = bellatrix_latest_execution_payload_header.parent_hash;
+-    capella_latest_execution_payload_header.fee_recipient = bellatrix_latest_execution_payload_header.fee_recipient;
+-    capella_latest_execution_payload_header.state_root = bellatrix_latest_execution_payload_header.state_root;
+-    capella_latest_execution_payload_header.receipts_root = bellatrix_latest_execution_payload_header.receipts_root;
+-    capella_latest_execution_payload_header.logs_bloom = bellatrix_latest_execution_payload_header.logs_bloom;
+-    capella_latest_execution_payload_header.prev_randao = bellatrix_latest_execution_payload_header.prev_randao;
+-    capella_latest_execution_payload_header.block_number = bellatrix_latest_execution_payload_header.block_number;
+-    capella_latest_execution_payload_header.gas_limit = bellatrix_latest_execution_payload_header.gas_limit;
+-    capella_latest_execution_payload_header.gas_used = bellatrix_latest_execution_payload_header.gas_used;
+-    capella_latest_execution_payload_header.timestamp = bellatrix_latest_execution_payload_header.timestamp;
+-    // Clone extra_data because bellatrix_state will be deinit after upgrade,
+-    // and capella state needs its own copy of the dynamically allocated data
+-    capella_latest_execution_payload_header.extra_data = try bellatrix_latest_execution_payload_header.extra_data.clone(allocator);
+-    capella_latest_execution_payload_header.base_fee_per_gas = bellatrix_latest_execution_payload_header.base_fee_per_gas;
+-    capella_latest_execution_payload_header.block_hash = bellatrix_latest_execution_payload_header.block_hash;
+-    capella_latest_execution_payload_header.transactions_root = bellatrix_latest_execution_payload_header.transactions_root;
++    try ct.bellatrix.ExecutionPayloadHeader.clone(
++        allocator,
++        &bellatrix_latest_execution_payload_header,
++        &new_latest_execution_payload_header,
++    );
++++++++ Contents of side #2
+    toExecutionPayloadHeader(
         allocator,
-        &bellatrix_latest_execution_payload_header,
-        &new_latest_execution_payload_header,
+        ct.capella.ExecutionPayloadHeader.Type,
+        bellatrix_latest_execution_payload_header.bellatrix,
+        &capella_latest_execution_payload_header,
     );
     // new in capella
     new_latest_execution_payload_header.withdrawals_root = [_]u8{0} ** 32;

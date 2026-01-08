@@ -143,7 +143,11 @@ pub const EpochCache = struct {
 
     epoch: Epoch,
 
-    pub fn createFromState(allocator: Allocator, state: *AnyBeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*EpochCache {
+%%%%%%% Changes from base to side #1
+-    pub fn createFromState(allocator: Allocator, state: *const BeaconStateAllForks, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*EpochCache {
++    pub fn createFromState(allocator: Allocator, state: *AnyBeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*EpochCache {
++++++++ Contents of side #2
+    pub fn createFromState(allocator: Allocator, state: *const BeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*EpochCache {
         const config = immutable_data.config;
         const pubkey_to_index = immutable_data.pubkey_to_index;
         const index_to_pubkey = immutable_data.index_to_pubkey;
@@ -157,7 +161,13 @@ pub const EpochCache = struct {
         var exit_queue_epoch = computeActivationExitEpoch(current_epoch);
         var exit_queue_churn: u64 = 0;
 
-        const validators = try state.validatorsSlice(allocator);
+%%%%%%% Changes from base to side #1
+-        const validators = state.validators().items;
++        const validators = try state.validatorsSlice(allocator);
++        defer allocator.free(validators);
++
++++++++ Contents of side #2
+        const validators = try (try state.validators()).getAll(allocator);
         defer allocator.free(validators);
 
         const validator_count = validators.len;

@@ -3,6 +3,10 @@ const ForkSeq = @import("config").ForkSeq;
 const BeaconState = @import("fork_types").BeaconState;
 const types = @import("consensus_types");
 const Eth1Data = types.phase0.Eth1Data.Type;
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const preset = @import("preset").preset;
 const Node = @import("persistent_merkle_tree").Node;
 

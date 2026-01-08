@@ -1,9 +1,19 @@
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
+-const types = @import("consensus_types");
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
+const types = @import("consensus_types");
 const preset = @import("preset").preset;
 const GENESIS_EPOCH = @import("preset").GENESIS_EPOCH;
 const types = @import("consensus_types");
 const Slot = types.primitive.Slot.Type;
 const Epoch = types.primitive.Epoch.Type;
 const SyncPeriod = types.primitive.SyncPeriod.Type;
+%%%%%%% Changes from base to side #1
+-const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
++++++++ Contents of side #2
+const BeaconState = @import("../types/beacon_state.zig").BeaconState;
 const Gwei = types.primitive.Gwei.Type;
 const ForkSeq = @import("config").ForkSeq;
 const BeaconState = @import("fork_types").BeaconState;

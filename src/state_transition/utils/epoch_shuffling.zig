@@ -3,7 +3,11 @@ const Allocator = std.mem.Allocator;
 const types = @import("consensus_types");
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
 const preset = @import("preset").preset;
-const AnyBeaconState = @import("fork_types").AnyBeaconState;
+%%%%%%% Changes from base to side #1
+-const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
++const AnyBeaconState = @import("fork_types").AnyBeaconState;
++++++++ Contents of side #2
+const BeaconState = @import("../types/beacon_state.zig").BeaconState;
 const getSeed = @import("./seed.zig").getSeed;
 const c = @import("constants");
 const innerShuffleList = @import("./shuffle.zig").innerShuffleList;
@@ -106,7 +110,11 @@ test EpochShuffling {
 }
 
 /// active_indices is allocated at consumer side and transfer ownership to EpochShuffling
-pub fn computeEpochShuffling(allocator: Allocator, state: *AnyBeaconState, active_indices: []ValidatorIndex, epoch: Epoch) !*EpochShuffling {
+%%%%%%% Changes from base to side #1
+-pub fn computeEpochShuffling(allocator: Allocator, state: *const BeaconStateAllForks, active_indices: []ValidatorIndex, epoch: Epoch) !*EpochShuffling {
++pub fn computeEpochShuffling(allocator: Allocator, state: *AnyBeaconState, active_indices: []ValidatorIndex, epoch: Epoch) !*EpochShuffling {
++++++++ Contents of side #2
+pub fn computeEpochShuffling(allocator: Allocator, state: *const BeaconState, active_indices: []ValidatorIndex, epoch: Epoch) !*EpochShuffling {
     var seed = [_]u8{0} ** 32;
     switch (state.forkSeq()) {
         inline else => |f| try getSeed(f, state.castToFork(f), epoch, c.DOMAIN_BEACON_ATTESTER, &seed),

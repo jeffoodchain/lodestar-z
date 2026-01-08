@@ -1,5 +1,9 @@
 const std = @import("std");
 const types = @import("consensus_types");
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const SignedBLSToExecutionChange = types.capella.SignedBLSToExecutionChange.Type;
 const BeaconConfig = @import("config").BeaconConfig;
 const SingleSignatureSet = @import("../utils/signature_sets.zig").SingleSignatureSet;

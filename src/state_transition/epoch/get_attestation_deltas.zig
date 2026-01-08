@@ -1,7 +1,11 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const attester_status = @import("../utils/attester_status.zig");
-const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
++const EpochCache = @import("../cache/epoch_cache.zig").EpochCache;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const EpochTransitionCache = @import("../cache/epoch_transition_cache.zig").EpochTransitionCache;
 const preset = @import("preset").preset;
 const c = @import("constants");

@@ -1,5 +1,13 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
+-const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
+-const ssz = @import("ssz");
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
+const BeaconState = @import("../types/beacon_state.zig").BeaconState;
+const ssz = @import("ssz");
 const types = @import("consensus_types");
 const preset = @import("preset").preset;
 const ForkSeq = @import("config").ForkSeq;
@@ -152,9 +160,17 @@ pub fn validateAttestation(
     }
 }
 
-pub fn isTimelyTarget(comptime fork: ForkSeq, inclusion_distance: Slot) bool {
+%%%%%%% Changes from base to side #1
+-pub fn isTimelyTarget(state: *const BeaconStateAllForks, inclusion_distance: Slot) bool {
++pub fn isTimelyTarget(comptime fork: ForkSeq, inclusion_distance: Slot) bool {
++++++++ Contents of side #2
+pub fn isTimelyTarget(state: *const BeaconState, inclusion_distance: Slot) bool {
     // post deneb attestation is valid till end of next epoch for target
-    if (fork.gte(.deneb)) {
+%%%%%%% Changes from base to side #1
+-    if (state.isPostDeneb()) {
++    if (fork.gte(.deneb)) {
++++++++ Contents of side #2
+    if (state.forkSeq().gte(.deneb)) {
         return true;
     }
 

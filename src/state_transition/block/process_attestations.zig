@@ -1,6 +1,16 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+%%%%%%% Changes from base to side #1
+-const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
+-const TestCachedBeaconStateAllForks = @import("../test_utils/root.zig").TestCachedBeaconStateAllForks;
+-const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
+-const EpochCacheImmutableData = @import("../cache/epoch_cache.zig").EpochCacheImmutableData;
++const TestCachedBeaconState = @import("../test_utils/root.zig").TestCachedBeaconState;
++++++++ Contents of side #2
+const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
 const TestCachedBeaconState = @import("../test_utils/root.zig").TestCachedBeaconState;
+const BeaconState = @import("../types/beacon_state.zig").BeaconState;
+const EpochCacheImmutableData = @import("../cache/epoch_cache.zig").EpochCacheImmutableData;
 const types = @import("consensus_types");
 const ForkSeq = @import("config").ForkSeq;
 const BeaconConfig = @import("config").BeaconConfig;

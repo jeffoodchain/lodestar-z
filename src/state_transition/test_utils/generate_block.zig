@@ -12,7 +12,11 @@ const getBlockRootAtSlot = state_transition.getBlockRootAtSlot;
 const BeaconState = @import("fork_types").BeaconState;
 
 /// Generate a valid electra block for the given pre-state.
-pub fn generateElectraBlock(allocator: Allocator, cached_state: *CachedBeaconState, out: *types.electra.SignedBeaconBlock.Type) !void {
+%%%%%%% Changes from base to side #1
+-pub fn generateElectraBlock(allocator: Allocator, cached_state: *const CachedBeaconStateAllForks, out: *types.electra.SignedBeaconBlock.Type) !void {
++pub fn generateElectraBlock(allocator: Allocator, cached_state: *CachedBeaconState, out: *types.electra.SignedBeaconBlock.Type) !void {
++++++++ Contents of side #2
+pub fn generateElectraBlock(allocator: Allocator, cached_state: *const CachedBeaconState, out: *types.electra.SignedBeaconBlock.Type) !void {
     const state = cached_state.state;
     const fork_state = try state.tryCastToFork(.electra);
     var attestations = types.electra.Attestations.default_value;

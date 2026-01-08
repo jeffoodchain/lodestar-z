@@ -1,7 +1,11 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const preset = @import("preset").preset;
-const AnyBeaconState = @import("fork_types").AnyBeaconState;
+%%%%%%% Changes from base to side #1
+-const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
++const AnyBeaconState = @import("fork_types").AnyBeaconState;
++++++++ Contents of side #2
+const BeaconState = @import("../types/beacon_state.zig").BeaconState;
 const ReferenceCount = @import("../utils/reference_count.zig").ReferenceCount;
 
 pub const EffectiveBalanceIncrements = std.ArrayList(u16);
@@ -17,6 +21,41 @@ pub fn effectiveBalanceIncrementsInit(allocator: Allocator, validator_count: usi
     try increments.resize(validator_count);
     @memset(increments.items[0..validator_count], 0);
     return increments;
+}
+
+%%%%%%% Changes from base to side #1
+-pub fn getEffectiveBalanceIncrementsWithLen(allocator: Allocator, validator_count: usize) !EffectiveBalanceIncrements {
+-    const len = 1024 * @divFloor(validator_count + 1024, 1024);
+-    return getEffectiveBalanceIncrementsZeroed(allocator, len);
+-}
+-
+-pub fn getEffectiveBalanceIncrements(allocator: Allocator, state: BeaconStateAllForks) !EffectiveBalanceIncrements {
+-    const validator_count = state.validators().items.len;
+-    var increments = try EffectiveBalanceIncrements.initCapacity(allocator, validator_count);
+-    try increments.resize(validator_count);
+-
+-    for (0..validator_count) |i| {
+-        const validator = state.validators()[i];
+-        increments.items[i] = @divFloor(validator.effective_balance, preset.EFFECTIVE_BALANCE_INCREMENT);
+-    }
+-}
+-
++++++++ Contents of side #2
+pub fn getEffectiveBalanceIncrementsWithLen(allocator: Allocator, validator_count: usize) !EffectiveBalanceIncrements {
+    const len = 1024 * @divFloor(validator_count + 1024, 1024);
+    return getEffectiveBalanceIncrementsZeroed(allocator, len);
+}
+
+pub fn getEffectiveBalanceIncrements(allocator: Allocator, state: BeaconState) !EffectiveBalanceIncrements {
+    const validators = try (try state.validators()).getAll(allocator);
+    defer allocator.free(validators);
+
+    var increments = try EffectiveBalanceIncrements.initCapacity(allocator, validators.len);
+    try increments.resize(validators.len);
+
+    for (validators, 0..) |validator, i| {
+        increments.items[i] = @divFloor(validator.effective_balance, preset.EFFECTIVE_BALANCE_INCREMENT);
+    }
 }
 
 // TODO: unit tests
