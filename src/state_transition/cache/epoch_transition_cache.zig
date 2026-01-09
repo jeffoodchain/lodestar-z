@@ -237,13 +237,6 @@ pub const EpochTransitionCache = struct {
         var indices_to_eject = std.ArrayList(ValidatorIndex).init(allocator);
 
         var total_active_stake_by_increment: u64 = 0;
-%%%%%%% Changes from base to side #1
--        const validator_count = state.validators().items.len;
-+        const validators = try state.validatorsSlice(allocator);
-+        defer allocator.free(validators);
-+        const validator_count = validators.len;
-+++++++ Contents of side #2
-        const validators = try (try state.validators()).getAll(allocator);
         defer allocator.free(validators);
         const validator_count = validators.len;
 

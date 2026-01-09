@@ -112,6 +112,9 @@ pub fn ContainerTreeView(comptime ST: type) type {
 +            }
 +++++++ Contents of side #2
         pub fn get(self: *const Self, comptime field_name: []const u8) !Field(field_name) {
+            comptime {
+                @setEvalBranchQuota(20000);
+            }
             const field_index = comptime ST.getFieldIndex(field_name);
             const ChildST = ST.getFieldType(field_name);
             const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
