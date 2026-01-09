@@ -1185,6 +1185,11 @@ pub const BeaconState = union(ForkSeq) {
         };
     }
 
+    pub fn forkCurrentVersion(self: *const BeaconState) ![4]u8 {
+        var f = try self.fork();
+        return f.getValue("current_version");
+    }
+
     pub fn setFork(self: *BeaconState, f: *const ct.phase0.Fork.Value) !void {
         switch (self.*) {
             inline else => |*state| try state.setValue("fork", f),
@@ -1274,6 +1279,15 @@ pub const BeaconState = union(ForkSeq) {
     pub fn validators(self: *const BeaconState) !ct.phase0.Validators.TreeView {
         return switch (self.*) {
             inline else => |state| try state.get("validators"),
+        };
+    }
+
+    pub fn validatorsCount(self: *const BeaconState) !usize {
+        return switch (self.*) {
+            inline else => |state| {
+                var validators_view = try state.get("validators");
+                return validators_view.length();
+            },
         };
     }
 
@@ -1400,6 +1414,15 @@ pub const BeaconState = union(ForkSeq) {
     pub fn finalizedCheckpoint(self: *const BeaconState) !ct.phase0.Checkpoint.TreeView {
         return switch (self.*) {
             inline else => |state| try state.get("finalized_checkpoint"),
+        };
+    }
+
+    pub fn finalizedEpoch(self: *const BeaconState) !u64 {
+        return switch (self.*) {
+            inline else => |state| {
+                var checkpoint_view = try state.get("finalized_checkpoint");
+                return try checkpoint_view.get("epoch");
+            },
         };
     }
 
