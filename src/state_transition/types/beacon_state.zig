@@ -1007,7 +1007,7 @@ pub const BeaconState = union(ForkSeq) {
     electra: ct.electra.BeaconState.TreeView,
     fulu: ct.fulu.BeaconState.TreeView,
 
-    pub fn fromValue(allocator: Allocator, pool: *Node.Pool, fork_seq: ForkSeq, value: anytype) !BeaconState {
+    pub fn fromValue(allocator: Allocator, pool: *Node.Pool, comptime fork_seq: ForkSeq, value: anytype) !BeaconState {
         return switch (fork_seq) {
             .phase0 => .{
                 .phase0 = try ct.phase0.BeaconState.TreeView.fromValue(allocator, pool, value),
@@ -1026,6 +1026,9 @@ pub const BeaconState = union(ForkSeq) {
             },
             .electra => .{
                 .electra = try ct.electra.BeaconState.TreeView.fromValue(allocator, pool, value),
+            },
+            .fulu => .{
+                .fulu = try ct.fulu.BeaconState.TreeView.fromValue(allocator, pool, value),
             },
         };
     }
