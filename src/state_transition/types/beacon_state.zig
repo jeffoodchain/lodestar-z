@@ -1141,7 +1141,7 @@ pub const BeaconState = union(ForkSeq) {
 
     pub fn deinit(self: *BeaconState) void {
         switch (self.*) {
-            inline else => |state| state.deinit(),
+            inline else => |*state| state.deinit(),
         }
     }
 
