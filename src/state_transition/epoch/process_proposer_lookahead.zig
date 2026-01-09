@@ -90,4 +90,6 @@ test "processProposerLookahead sanity" {
         test_state.cached_state.state.castToFork(.fulu),
         test_state.epoch_transition_cache,
     );
+
+    try state.setProposerLookahead(&proposer_lookahead);
 }
