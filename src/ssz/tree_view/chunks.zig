@@ -175,7 +175,7 @@ pub fn CompositeChunks(
             base_view: *BaseTreeView,
             allocator: Allocator,
             len: usize,
-        ) ![]Value {
+        ) ![]const Value {
             const values = try allocator.alloc(Value, len);
             errdefer allocator.free(values);
             return try getAllValuesInto(base_view, allocator, values);
@@ -187,7 +187,7 @@ pub fn CompositeChunks(
             base_view: *BaseTreeView,
             allocator: Allocator,
             values: []Value,
-        ) ![]Value {
+        ) ![]const Value {
             const len = values.len;
             if (len == 0) return values;
 

@@ -200,10 +200,22 @@ pub const TestCachedBeaconState = struct {
         errdefer allocator.destroy(config);
         config.* = BeaconConfig.init(chain_config, (try state.genesisValidatorsRoot()).*);
 
-        const validators = try state.validatorsSlice(allocator);
-        defer allocator.free(validators);
-
-        try syncPubkeys(validators, pubkey_index_map, index_pubkey_cache);
+%%%%%%% Changes from base #1 to side #1
+-        var validators_view = try state.validators();
+-        const validators = try validators_view.getAllReadonlyValues(allocator);
++        const validators = try state.validatorsSlice(allocator);
+         defer allocator.free(validators);
+-        
++
+         try syncPubkeys(validators, pubkey_index_map, index_pubkey_cache);
++++++++ Contents of side #2
+        try syncPubkeys(state.validators().items, pubkey_index_map, index_pubkey_cache);
+%%%%%%% Changes from base #2 to side #3
+         const validators = try state.validatorsSlice(allocator);
+         defer allocator.free(validators);
+ 
+         try syncPubkeys(validators, pubkey_index_map, index_pubkey_cache);
+>>>>>>> Conflict 1 of 1 ends
 
         const immutable_data = state_transition.EpochCacheImmutableData{
             .config = config,
