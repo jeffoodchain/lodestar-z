@@ -2,6 +2,22 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const blst = @import("blst");
 const PublicKey = blst.PublicKey;
+%%%%%%% Changes from base #1 to side #2
+ const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
+ const BeaconBlock = @import("../types/beacon_block.zig").BeaconBlock;
+ const SignedBeaconBlock = @import("../types/beacon_block.zig").SignedBeaconBlock;
++const computeEpochAtSlot = @import("../utils/epoch.zig").computeEpochAtSlot;
+ const c = @import("constants");
+ const computeSigningRoot = @import("../utils/signing_root.zig").computeSigningRoot;
+-const computeStartSlotAtEpoch = @import("../utils/epoch.zig").computeStartSlotAtEpoch;
+%%%%%%% Changes from base #2 to side #3
+ const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
+ const BeaconBlock = @import("../types/beacon_block.zig").BeaconBlock;
+ const SignedBeaconBlock = @import("../types/beacon_block.zig").SignedBeaconBlock;
+-const computeEpochAtSlot = @import("../utils/epoch.zig").computeEpochAtSlot;
+ const c = @import("constants");
+ const computeSigningRoot = @import("../utils/signing_root.zig").computeSigningRoot;
++const computeStartSlotAtEpoch = @import("../utils/epoch.zig").computeStartSlotAtEpoch;
 const types = @import("consensus_types");
 const Epoch = types.primitive.Epoch.Type;
 const AttestationData = types.phase0.AttestationData.Type;
@@ -22,6 +38,20 @@ const createAggregateSignatureSetFromComponents = @import("../utils/signature_se
 pub fn getAttestationDataSigningRoot(config: *const BeaconConfig, state_epoch: Epoch, data: *const AttestationData, out: *[32]u8) !void {
     const slot = computeStartSlotAtEpoch(data.target.epoch);
     const domain = try config.getDomain(state_epoch, c.DOMAIN_BEACON_ATTESTER, slot);
+%%%%%%% Changes from base #1 to side #2
+ pub fn getAttestationDataSigningRoot(cached_state: *const CachedBeaconStateAllForks, data: *const AttestationData, out: *[32]u8) !void {
+-    const slot = computeStartSlotAtEpoch(data.target.epoch);
++    const slot = computeEpochAtSlot(data.target.epoch);
+     const config = cached_state.config;
+     const state = cached_state.state;
+     const domain = try config.getDomain(state.slot(), c.DOMAIN_BEACON_ATTESTER, slot);
+%%%%%%% Changes from base #2 to side #3
+ pub fn getAttestationDataSigningRoot(cached_state: *const CachedBeaconState, data: *const AttestationData, out: *[32]u8) !void {
+-    const slot = computeEpochAtSlot(data.target.epoch);
++    const slot = computeStartSlotAtEpoch(data.target.epoch);
+     const config = cached_state.config;
+     const state = cached_state.state;
+     const domain = try config.getDomain(state.slot(), c.DOMAIN_BEACON_ATTESTER, slot);
 
     try computeSigningRoot(types.phase0.AttestationData, data, domain, out);
 }
