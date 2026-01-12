@@ -76,7 +76,7 @@ pub fn ArrayCompositeTreeView(comptime ST: type) type {
 
         pub fn getRoot(self: *const Self, index: usize) !*const [32]u8 {
             if (index >= length) return error.IndexOutOfBounds;
-            const field_node = try @constCast(&self.base_view).getChildNode(Gindex.fromDepth(chunk_depth, index));
+            const field_node = try self.base_view.getChildNode(Gindex.fromDepth(chunk_depth, index));
             return field_node.getRoot(self.base_view.pool);
         }
 

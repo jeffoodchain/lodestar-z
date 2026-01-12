@@ -116,6 +116,7 @@ pub const CachedBeaconState = struct {
          self.allocator.destroy(self.state);
 +++++++ Contents of side #2
         self.state.deinit();
+        self.allocator.destroy(self.state);
     }
 
     pub fn isSlashed(self: *const CachedBeaconState, index: ValidatorIndex) bool {

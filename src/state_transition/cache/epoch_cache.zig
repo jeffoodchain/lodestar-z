@@ -143,11 +143,6 @@ pub const EpochCache = struct {
 
     epoch: Epoch,
 
-%%%%%%% Changes from base to side #1
--    pub fn createFromState(allocator: Allocator, state: *const BeaconStateAllForks, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*EpochCache {
-+    pub fn createFromState(allocator: Allocator, state: *AnyBeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*EpochCache {
-+++++++ Contents of side #2
-    pub fn createFromState(allocator: Allocator, state: *const BeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*EpochCache {
         const config = immutable_data.config;
         const pubkey_to_index = immutable_data.pubkey_to_index;
         const index_to_pubkey = immutable_data.index_to_pubkey;
@@ -482,7 +477,7 @@ pub const EpochCache = struct {
         std.mem.copyForwards(ValidatorIndex, next_shuffling_active_indices, epoch_transition_cache.next_shuffling_active_indices);
         const next_shuffling = try computeEpochShuffling(
             self.allocator,
-            &state,
+            state,
             next_shuffling_active_indices,
             epoch_after_upcoming,
         );
