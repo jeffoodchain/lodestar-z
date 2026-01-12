@@ -102,6 +102,9 @@ fn isValidatorEligibleForWithdrawOrExit(
     const activation_epoch = try validator.get("activation_epoch");
     const exit_epoch = try validator.get("exit_epoch");
 
+    const activation_epoch = try validator.get("activation_epoch");
+    const exit_epoch = try validator.get("exit_epoch");
+
     return (hasExecutionWithdrawalCredential(withdrawal_credentials) and
         std.mem.eql(u8, address, source_address) and
         (try isActiveValidatorView(validator, current_epoch)) and

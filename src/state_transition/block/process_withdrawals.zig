@@ -29,11 +29,6 @@ pub const WithdrawalsResult = struct {
 pub fn processWithdrawals(
     comptime fork: ForkSeq,
     allocator: Allocator,
-%%%%%%% Changes from base to side #1
--    cached_state: *const CachedBeaconStateAllForks,
-+    state: *BeaconState(fork),
-+++++++ Contents of side #2
-    cached_state: *const CachedBeaconState,
     expected_withdrawals_result: WithdrawalsResult,
     payload_withdrawals_root: Root,
 ) !void {
