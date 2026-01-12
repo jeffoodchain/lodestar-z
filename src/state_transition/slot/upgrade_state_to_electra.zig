@@ -83,13 +83,6 @@ pub fn upgradeStateToElectra(
         const balance = try balances.get(validator_index);
         try balances.set(validator_index, 0);
 
-%%%%%%% Changes from base to side #1
--        const validator = &state.validators().items[validator_index];
--        validator.effective_balance = 0;
-+        var validator = try validators.get(validator_index);
-+        try validator.set("effective_balance", 0);
-+++++++ Contents of side #2
-        const validator = try validators.get(validator_index);
         try validator.set("effective_balance", 0);
         effective_balance_increments.items[validator_index] = 0;
         try validator.set("activation_eligibility_epoch", constants.FAR_FUTURE_EPOCH);

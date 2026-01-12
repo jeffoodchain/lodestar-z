@@ -482,7 +482,7 @@ pub const EpochCache = struct {
         std.mem.copyForwards(ValidatorIndex, next_shuffling_active_indices, epoch_transition_cache.next_shuffling_active_indices);
         const next_shuffling = try computeEpochShuffling(
             self.allocator,
-            state,
+            &state,
             next_shuffling_active_indices,
             epoch_after_upcoming,
         );

@@ -20,7 +20,6 @@ const ct = @import("consensus_types");
 +const ValidatorIndex = ct.primitive.ValidatorIndex.Type;
 +++++++ Contents of side #2
 pub const WithdrawalCredentials = ct.primitive.Root.Type;
-pub const WithdrawalCredentialsLength = ct.primitive.Root.length;
 const BLSPubkey = ct.primitive.BLSPubkey.Type;
 const ValidatorIndex = ct.primitive.ValidatorIndex.Type;
 

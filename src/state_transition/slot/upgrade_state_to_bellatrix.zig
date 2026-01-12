@@ -43,16 +43,6 @@ pub fn upgradeStateToBellatrix(
     // next_sync_committee           | -   | next_sync_committee
     // -                             | new | latest_execution_payload_header
 
-%%%%%%% Changes from base to side #1
--    const altair_state = state.altair;
--    defer {
--        ssz.altair.BeaconState.deinit(allocator, altair_state);
--        allocator.destroy(altair_state);
--    }
-+    var state = try altair_state.upgradeUnsafe();
-+    errdefer state.deinit();
-+++++++ Contents of side #2
-    const state = try altair_state.upgradeUnsafe();
     defer altair_state.deinit();
 
     const new_fork: ct.phase0.Fork.Type = .{
