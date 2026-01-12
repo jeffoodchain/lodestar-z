@@ -5,6 +5,7 @@ const Depth = hashing.Depth;
 const Node = @import("persistent_merkle_tree").Node;
 const Gindex = @import("persistent_merkle_tree").Gindex;
 const isBasicType = @import("../type/type_kind.zig").isBasicType;
+const isFixedType = @import("../type/type_kind.zig").isFixedType;
 
 const type_root = @import("../type/root.zig");
 const chunkDepth = type_root.chunkDepth;
@@ -1120,6 +1121,53 @@ test "ListCompositeTreeView - push and serialize" {
     const expected_root = [_]u8{ 0x0c, 0xb9, 0x47, 0x37, 0x7e, 0x17, 0x7f, 0x77, 0x47, 0x19, 0xea, 0xd8, 0xd2, 0x10, 0xaf, 0x9c, 0x64, 0x61, 0xf4, 0x1b, 0xaf, 0x5b, 0x40, 0x82, 0xf8, 0x6a, 0x39, 0x11, 0x45, 0x48, 0x31, 0xb8 };
     const hash_root = try view.hashTreeRoot();
     try std.testing.expectEqualSlices(u8, &expected_root, hash_root);
+}
+
+test "ListCompositeTreeView - ReadonlyIterator" {
+    const allocator = std.testing.allocator;
+
+    const Root32 = ByteVectorType(32);
+    const ListRootsType = FixedListType(Root32, 128);
+
+    var pool = try Node.Pool.init(allocator, 1024);
+    defer pool.deinit();
+
+    var value: ListRootsType.Type = ListRootsType.default_value;
+    defer value.deinit(allocator);
+
+    const data = [_][32]u8{
+        [_]u8{0xaa} ** 32,
+        [_]u8{0xbb} ** 32,
+        [_]u8{0xcc} ** 32,
+        [_]u8{0xdd} ** 32,
+        [_]u8{0xee} ** 32,
+        [_]u8{0xff} ** 32,
+    };
+    for (data) |d| {
+        try value.append(allocator, d);
+    }
+
+    const tree_node = try ListRootsType.tree.fromValue(&pool, &value);
+    var view = try ListRootsType.TreeView.init(allocator, &pool, tree_node);
+    defer view.deinit();
+
+    var iter = view.iteratorReadonly(0);
+
+    for (data) |expected| {
+        var elem = try iter.next();
+        defer elem.deinit();
+        var elem_value: [32]u8 = undefined;
+
+        try Root32.tree.toValue(elem.base_view.data.root, &pool, &elem_value);
+        try std.testing.expectEqualSlices(u8, &expected, &elem_value);
+    }
+
+    iter = view.iteratorReadonly(0);
+    for (data) |expected| {
+        const elem_value = try iter.nextValue(undefined);
+
+        try std.testing.expectEqualSlices(u8, &expected, &elem_value);
+    }
 }
 
 test "ListCompositeTreeView - ReadonlyIterator" {
