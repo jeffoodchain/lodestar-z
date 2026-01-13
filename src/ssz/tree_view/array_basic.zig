@@ -60,10 +60,8 @@ pub fn ArrayBasicTreeView(comptime ST: type) type {
             self.base_view.clearCache();
         }
 
-        /// Return the root hash of the tree.
-        /// The returned array is owned by the internal pool and must not be modified.
-        pub fn hashTreeRoot(self: *Self) !*const [32]u8 {
-            return try self.base_view.hashTreeRoot();
+        pub fn hashTreeRoot(self: *Self, out: *[32]u8) !void {
+            try self.base_view.hashTreeRoot(out);
         }
 
         pub fn get(self: *Self, index: usize) !Element {
@@ -95,11 +93,21 @@ pub fn ArrayBasicTreeView(comptime ST: type) type {
         pub fn serializedSize(_: *Self) usize {
             return ST.fixed_size;
         }
-
-        pub fn toValue(self: *Self, _: Allocator, out: *ST.Type) !void {
-            try self.commit();
-            try ST.tree.toValue(self.base_view.data.root, self.base_view.pool, out);
-        }
+%%%%%%% Changes from base #1 to side #1
+ 
+-        pub fn toValue(self: *Self, out: *ST.Type) !void {
++        pub fn toValue(self: *Self, _: Allocator, out: *ST.Type) !void {
+             try self.commit();
+             try ST.tree.toValue(self.base_view.data.root, self.base_view.pool, out);
+         }
++++++++ Contents of side #2
+%%%%%%% Changes from base #2 to side #3
+ 
+         pub fn toValue(self: *Self, _: Allocator, out: *ST.Type) !void {
+             try self.commit();
+             try ST.tree.toValue(self.base_view.data.root, self.base_view.pool, out);
+         }
+>>>>>>> Conflict 1 of 1 ends
     };
 }
 
@@ -135,9 +143,10 @@ test "TreeView vector element roundtrip" {
     var expected_root: [32]u8 = undefined;
     try VectorType.hashTreeRoot(&expected, &expected_root);
 
-    const actual_root = try view.hashTreeRoot();
+    var actual_root: [32]u8 = undefined;
+    try view.hashTreeRoot(&actual_root);
 
-    try std.testing.expectEqualSlices(u8, &expected_root, actual_root);
+    try std.testing.expectEqualSlices(u8, &expected_root, &actual_root);
 
     var roundtrip: VectorType.Type = undefined;
     try VectorType.tree.toValue(view.base_view.data.root, &pool, &roundtrip);
@@ -382,8 +391,9 @@ test "ArrayBasicTreeView - serialize (uint64 vector)" {
         const view_size = view.serializedSize();
         try std.testing.expectEqual(tc.expected_serialized.len, view_size);
 
-        const hash_root = try view.hashTreeRoot();
-        try std.testing.expectEqualSlices(u8, &tc.expected_root, hash_root);
+        var hash_root: [32]u8 = undefined;
+        try view.hashTreeRoot(&hash_root);
+        try std.testing.expectEqualSlices(u8, &tc.expected_root, &hash_root);
     }
 }
 
