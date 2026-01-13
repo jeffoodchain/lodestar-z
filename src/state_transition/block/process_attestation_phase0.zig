@@ -160,11 +160,6 @@ pub fn validateAttestation(
     }
 }
 
-%%%%%%% Changes from base to side #1
--pub fn isTimelyTarget(state: *const BeaconStateAllForks, inclusion_distance: Slot) bool {
-+pub fn isTimelyTarget(comptime fork: ForkSeq, inclusion_distance: Slot) bool {
-+++++++ Contents of side #2
-pub fn isTimelyTarget(state: *const BeaconState, inclusion_distance: Slot) bool {
     // post deneb attestation is valid till end of next epoch for target
 %%%%%%% Changes from base to side #1
 -    if (state.isPostDeneb()) {
