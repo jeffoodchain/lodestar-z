@@ -247,6 +247,8 @@ pub const BaseTreeView = struct {
     pub fn getChildDataReadonly(self: *BaseTreeView, gindex: Gindex) !*TreeViewData {
         const gop = try self.data.children_data.getOrPut(self.allocator, gindex);
         if (gop.found_existing) {
+            // TODO only update changed if the subview is mutable
+            try self.data.changed.put(self.allocator, gindex, {});
             return gop.value_ptr.*;
         }
         errdefer _ = self.data.children_data.remove(gindex);
