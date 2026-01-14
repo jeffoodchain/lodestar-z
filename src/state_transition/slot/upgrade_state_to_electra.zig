@@ -19,7 +19,11 @@ pub fn upgradeStateToElectra(
     deneb_state: *BeaconState(.deneb),
 ) !BeaconState(.electra) {
     var state = try deneb_state.upgradeUnsafe();
-    errdefer state.deinit();
+    cached_state.state.* = state;
+    errdefer {
+        state.deinit();
+        cached_state.state.* = deneb_state;
+    }
 
     const new_fork: ct.phase0.Fork.Type = .{
         .previous_version = try deneb_state.forkCurrentVersion(),
