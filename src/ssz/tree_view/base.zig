@@ -211,24 +211,8 @@ pub const BaseTreeView = struct {
         return self.data.root.getRoot(self.pool);
     }
 
-    /// Like getChildNode but does not check for updated child_data first.
-    fn getChildNodeInner(self: *BaseTreeView, gindex: Gindex) !Node.Id {
-        const gop = try self.data.children_nodes.getOrPut(self.allocator, gindex);
-        if (gop.found_existing) {
-            return gop.value_ptr.*;
-        }
-        const child_node = try self.data.root.getNode(self.pool, gindex);
-        gop.value_ptr.* = child_node;
-        return child_node;
-    }
-
     pub fn getChildNode(self: *BaseTreeView, gindex: Gindex) !Node.Id {
         const gop = try self.data.children_nodes.getOrPut(self.allocator, gindex);
-        if (self.data.children_data.get(gindex)) |child_data| {
-            try child_data.commit(self.allocator, self.pool);
-            gop.value_ptr.* = child_data.root;
-            return child_data.root;
-        }
         if (gop.found_existing) {
             return gop.value_ptr.*;
         }
