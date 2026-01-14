@@ -161,6 +161,33 @@ pub fn ContainerTreeView(comptime ST: type) type {
             }
         }
 
+        /// Get a field by name. If the field is a basic type, returns the value directly.
+        /// Caller borrows a copy of the value so there is no need to deinit it.
+        pub fn getReadonly(self: *Self, comptime field_name: []const u8) !Field(field_name) {
+            comptime {
+                @setEvalBranchQuota(20000);
+            }
+            const field_index = comptime ST.getFieldIndex(field_name);
+            const ChildST = ST.getFieldType(field_name);
+            const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
+            if (comptime isBasicType(ChildST)) {
+                var value: ChildST.Type = undefined;
+                const child_node = try self.base_view.getChildNode(child_gindex);
+                try ChildST.tree.toValue(child_node, self.base_view.pool, &value);
+                return value;
+            } else {
+                const child_data = try self.base_view.getChildDataReadonly(child_gindex);
+
+                return .{
+                    .base_view = .{
+                        .allocator = self.base_view.allocator,
+                        .pool = self.base_view.pool,
+                        .data = child_data,
+                    },
+                };
+            }
+        }
+
         /// Set a field by name. If the field is a basic type, pass the value directly.
         /// If the field is a complex type, pass a TreeView of the corresponding type.
         /// The caller transfers ownership of the `value` TreeView to this parent view.

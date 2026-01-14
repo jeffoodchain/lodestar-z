@@ -88,6 +88,12 @@ pub fn ListCompositeTreeView(comptime ST: type) type {
             return try Chunks.get(&self.base_view, index);
         }
 
+        pub fn getReadonly(self: *Self, index: usize) !Element {
+            const list_length = try self.length();
+            if (index >= list_length) return error.IndexOutOfBounds;
+            return try Chunks.getReadonly(&self.base_view, index);
+        }
+
         pub fn getValue(self: *Self, allocator: Allocator, index: usize) !ST.Element.Type {
             var child_view = try self.get(index);
             var out = ST.Element.default_value;
@@ -122,14 +128,9 @@ pub fn ListCompositeTreeView(comptime ST: type) type {
 +
 +++++++ Contents of side #2
         pub fn setValue(self: *Self, index: usize, value: *const ST.Element.Type) !void {
-            const root = try ST.Element.tree.fromValue(self.base_view.pool, value);
-            errdefer self.base_view.pool.unref(root);
-            const child_view = try ST.Element.TreeView.init(
-                self.base_view.allocator,
-                self.base_view.pool,
-                root,
-            );
-            try self.set(index, child_view);
+            const list_length = try self.length();
+            if (index >= list_length) return error.IndexOutOfBounds;
+            try Chunks.setValue(&self.base_view, index, value);
         }
 
         pub fn getAllReadonly(self: *Self, allocator: Allocator) ![]Element {
