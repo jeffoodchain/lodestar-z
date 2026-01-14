@@ -15,3 +15,11 @@ perf.data.old
 
 # js
 node_modules/
+%%%%%%% Changes from base to side #2 (adds terminating newline)
+-*.era
++*.era
++
++# perf
++flamegraph.html
++perf.data
++perf.data.old
