@@ -16,10 +16,11 @@ pub fn sign(secret_key: SecretKey, msg: []const u8) Signature {
 /// If `pk_validate` is `true`, the public key will be infinity and group checked.
 ///
 /// If `sig_groupcheck` is `true`, the signature will be group checked.
-pub fn verify(msg: []const u8, pk: *const PublicKey, sig: *const Signature, in_pk_validate: ?bool, in_sig_groupcheck: ?bool) blst.BlstError!void {
+pub fn verify(msg: []const u8, pk: *const PublicKey, sig: *const Signature, in_pk_validate: ?bool, in_sig_groupcheck: ?bool) bool {
     const sig_groupcheck = in_sig_groupcheck orelse false;
     const pk_validate = in_pk_validate orelse false;
-    try sig.verify(sig_groupcheck, msg, DST, null, pk, pk_validate);
+    sig.verify(sig_groupcheck, msg, DST, null, pk, pk_validate) catch return false;
+    return true;
 }
 
 pub fn fastAggregateVerify(msg: []const u8, pks: []const PublicKey, sig: *const Signature, in_pk_validate: ?bool, in_sigs_group_check: ?bool) !bool {
