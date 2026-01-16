@@ -11,7 +11,6 @@ const hexLenFromBytes = @import("hex").hexLenFromBytes;
 const merkleize = @import("hashing").merkleize;
 const mixInLength = @import("hashing").mixInLength;
 const maxChunksToDepth = @import("hashing").maxChunksToDepth;
-const getZeroHash = @import("hashing").getZeroHash;
 const Node = @import("persistent_merkle_tree").Node;
 const BitListTreeView = @import("../tree_view/root.zig").BitListTreeView;
 
@@ -257,12 +256,6 @@ pub fn BitListType(comptime _limit: comptime_int) type {
         pub const chunk_depth: u8 = maxChunksToDepth(max_chunk_count);
 
         pub const default_value: Type = Type.empty;
-
-        pub const default_root: [32]u8 = blk: {
-            var buf = getZeroHash(chunk_depth).*;
-            mixInLength(0, &buf);
-            break :blk buf;
-        };
 
         pub fn equals(a: *const Type, b: *const Type) bool {
             return a.equals(b);
