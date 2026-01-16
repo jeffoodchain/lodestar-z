@@ -60,10 +60,9 @@ pub fn ListBasicTreeView(comptime ST: type) type {
             self.base_view.clearCache();
         }
 
-        /// Return the root hash of the tree.
-        /// The returned array is owned by the internal pool and must not be modified.
-        pub fn hashTreeRoot(self: *Self) !*const [32]u8 {
-            return try self.base_view.hashTreeRoot();
+        pub fn hashTreeRoot(self: *Self, out: *[32]u8) !void {
+            try self.commit();
+            out.* = self.base_view.data.root.getRoot(self.base_view.pool).*;
         }
 
         pub fn length(self: *Self) !usize {
@@ -176,11 +175,6 @@ pub fn ListBasicTreeView(comptime ST: type) type {
             return try ST.tree.serializeIntoBytes(self.base_view.data.root, self.base_view.pool, out);
         }
 
-        pub fn toValue(self: *Self, allocator: Allocator, out: *ST.Type) !void {
-            try self.commit();
-            try ST.tree.toValue(allocator, self.base_view.data.root, self.base_view.pool, out);
-        }
-
         /// Get the serialized size of this tree view.
         pub fn serializedSize(self: *Self) !usize {
             try self.commit();
@@ -281,8 +275,10 @@ test "TreeView list element roundtrip" {
     var expected_root: [32]u8 = undefined;
     try ListType.hashTreeRoot(allocator, &expected_list, &expected_root);
 
-    const actual_root = try view.hashTreeRoot();
-    try std.testing.expectEqualSlices(u8, &expected_root, actual_root);
+    var actual_root: [32]u8 = undefined;
+    try view.hashTreeRoot(&actual_root);
+
+    try std.testing.expectEqualSlices(u8, &expected_root, &actual_root);
 
     var roundtrip: ListType.Type = .empty;
     defer roundtrip.deinit(allocator);
@@ -325,8 +321,10 @@ test "TreeView list push updates cached length" {
     var expected_root: [32]u8 = undefined;
     try ListType.hashTreeRoot(allocator, &expected, &expected_root);
 
-    const actual_root = try view.hashTreeRoot();
-    try std.testing.expectEqualSlices(u8, &expected_root, actual_root);
+    var actual_root: [32]u8 = undefined;
+    try view.hashTreeRoot(&actual_root);
+
+    try std.testing.expectEqualSlices(u8, &expected_root, &actual_root);
 }
 
 test "TreeView list getAllAlloc handles zero length" {
@@ -413,8 +411,9 @@ test "TreeView list push batches before commit" {
 
     var expected_root: [32]u8 = undefined;
     try ListType.hashTreeRoot(allocator, &expected, &expected_root);
-    const actual_root = try view.hashTreeRoot();
-    try std.testing.expectEqualSlices(u8, &expected_root, actual_root);
+    var actual_root: [32]u8 = undefined;
+    try view.hashTreeRoot(&actual_root);
+    try std.testing.expectEqualSlices(u8, &expected_root, &actual_root);
 }
 
 test "TreeView list push across chunk boundary resets prefetch" {
@@ -663,8 +662,10 @@ test "TreeView list sliceTo returns original when truncation unnecessary" {
     var expected_root: [32]u8 = undefined;
     try ListType.hashTreeRoot(allocator, &list, &expected_root);
 
-    const actual_root = try sliced.hashTreeRoot();
-    try std.testing.expectEqualSlices(u8, &expected_root, actual_root);
+    var actual_root: [32]u8 = undefined;
+    try sliced.hashTreeRoot(&actual_root);
+
+    try std.testing.expectEqualSlices(u8, &expected_root, &actual_root);
 }
 
 // Refer to https://github.com/ChainSafe/ssz/blob/7f5580c2ea69f9307300ddb6010a8bc7ce2fc471/packages/ssz/test/unit/byType/listBasic/tree.test.ts#L219-L247
@@ -724,8 +725,10 @@ test "TreeView basic list sliceTo matches incremental snapshots" {
         var expected_root: [32]u8 = undefined;
         try ListType.hashTreeRoot(allocator, &expected, &expected_root);
 
-        const actual_root = try sliced.hashTreeRoot();
-        try std.testing.expectEqualSlices(u8, &expected_root, actual_root);
+        var actual_root: [32]u8 = undefined;
+        try sliced.hashTreeRoot(&actual_root);
+
+        try std.testing.expectEqualSlices(u8, &expected_root, &actual_root);
     }
 }
 
@@ -766,8 +769,10 @@ test "TreeView list sliceTo truncates tail elements" {
     var expected_root: [32]u8 = undefined;
     try ListType.hashTreeRoot(allocator, &expected, &expected_root);
 
-    const actual_root = try sliced.hashTreeRoot();
-    try std.testing.expectEqualSlices(u8, &expected_root, actual_root);
+    var actual_root: [32]u8 = undefined;
+    try sliced.hashTreeRoot(&actual_root);
+
+    try std.testing.expectEqualSlices(u8, &expected_root, &actual_root);
 }
 
 // Tests ported from TypeScript ssz packages/ssz/test/unit/byType/listBasic/tree.test.ts
@@ -828,8 +833,9 @@ test "ListBasicTreeView - serialize (uint8 list)" {
 
         try std.testing.expectEqual(tc.expected_serialized.len, view_size);
 
-        const actual_root = try view.hashTreeRoot();
-        try std.testing.expectEqualSlices(u8, &tc.expected_root, actual_root);
+        var hash_root: [32]u8 = undefined;
+        try view.hashTreeRoot(&hash_root);
+        try std.testing.expectEqualSlices(u8, &tc.expected_root, &hash_root);
     }
 }
 
@@ -891,8 +897,9 @@ test "ListBasicTreeView - serialize (uint64 list)" {
 
         try std.testing.expectEqual(tc.expected_serialized.len, view_size);
 
-        const actual_root = try view.hashTreeRoot();
-        try std.testing.expectEqualSlices(u8, &tc.expected_root, actual_root);
+        var hash_root: [32]u8 = undefined;
+        try view.hashTreeRoot(&hash_root);
+        try std.testing.expectEqualSlices(u8, &tc.expected_root, &hash_root);
     }
 }
 
@@ -928,9 +935,10 @@ test "ListBasicTreeView - push and serialize" {
     const len = try view.length();
     try std.testing.expectEqual(@as(usize, 4), len);
 
+    var hash_root: [32]u8 = undefined;
+    try view.hashTreeRoot(&hash_root);
     const expected_root = [_]u8{ 0xba, 0xc5, 0x11, 0xd1, 0xf6, 0x41, 0xd6, 0xb8, 0x82, 0x32, 0x00, 0xbb, 0x4b, 0x3c, 0xce, 0xd3, 0xbd, 0x47, 0x20, 0x70, 0x1f, 0x18, 0x57, 0x1d, 0xff, 0x35, 0xa5, 0xd2, 0xa4, 0x01, 0x90, 0xfa };
-    const actual_root = try view.hashTreeRoot();
-    try std.testing.expectEqualSlices(u8, &expected_root, actual_root);
+    try std.testing.expectEqualSlices(u8, &expected_root, &hash_root);
 }
 
 test "ListBasicTreeView - sliceTo and serialize" {
@@ -964,31 +972,4 @@ test "ListBasicTreeView - sliceTo and serialize" {
 
     try std.testing.expectEqualSlices(u8, &[_]u8{ 1, 2 }, serialized);
     try std.testing.expectEqual(@as(usize, 2), try sliced.length());
-}
-
-test "ListBasicTreeView - ReadonlyIterator" {
-    const allocator = std.testing.allocator;
-
-    const Uint16 = UintType(16);
-    const ListU16Type = FixedListType(Uint16, 64);
-
-    var pool = try Node.Pool.init(allocator, 1024);
-    defer pool.deinit();
-
-    var value: ListU16Type.Type = ListU16Type.default_value;
-    defer value.deinit(allocator);
-    const test_values = &[_]u16{ 10, 20, 30, 40, 50 };
-    for (test_values) |v| {
-        try value.append(allocator, v);
-    }
-
-    const tree_node = try ListU16Type.tree.fromValue(&pool, &value);
-    var view = try ListU16Type.TreeView.init(allocator, &pool, tree_node);
-    defer view.deinit();
-
-    var iter = view.iteratorReadonly(0);
-    for (test_values) |expected| {
-        const val = try iter.next();
-        try std.testing.expectEqual(expected, val);
-    }
 }

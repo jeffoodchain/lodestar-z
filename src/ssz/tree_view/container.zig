@@ -39,16 +39,11 @@ pub fn ContainerTreeView(comptime ST: type) type {
             try self.base_view.commit();
         }
 
-        /// Return the root hash of the tree.
-        /// The returned array is owned by the internal pool and must not be modified.
-        pub fn hashTreeRoot(self: *Self) !*const [32]u8 {
-            return try self.base_view.hashTreeRoot();
+        pub fn hashTreeRoot(self: *Self, out: *[32]u8) !void {
+            try self.base_view.hashTreeRoot(out);
         }
 
         pub fn Field(comptime field_name: []const u8) type {
-            comptime {
-                @setEvalBranchQuota(20000);
-            }
             const ChildST = ST.getFieldType(field_name);
             if (comptime isBasicType(ChildST)) {
                 return ChildST.Type;
@@ -67,30 +62,21 @@ pub fn ContainerTreeView(comptime ST: type) type {
             return Gindex.fromDepth(ST.chunk_depth, field_index);
         }
 
+%%%%%%% Changes from base #1 to side #1
+-        pub fn getRootNode(self: *Self, comptime field_name: []const u8) !Node.Id {
+-            const ChildST = ST.getFieldType(field_name);
+%%%%%%% Changes from base #2 to side #2
+         pub fn getRootNode(self: *const Self, comptime field_name: []const u8) !Node.Id {
++++++++ Contents of side #3
+        pub fn getRootNode(self: *Self, comptime field_name: []const u8) !Node.Id {
+>>>>>>> Conflict 1 of 2 ends
             const field_gindex = Self.getGindex(field_name);
-            if (comptime isBasicType(ChildST)) {
-                return try self.base_view.getChildNode(field_gindex);
-            } else {
-                const field_data = try self.base_view.getChildDataReadonly(field_gindex);
-                try field_data.commit(self.base_view.allocator, self.base_view.pool);
-                return field_data.root;
-            }
+            return try self.base_view.getChildNode(field_gindex);
         }
 
         pub fn setRootNode(self: *Self, comptime field_name: []const u8, root: Node.Id) !void {
-            const ChildST = ST.getFieldType(field_name);
             const field_gindex = Self.getGindex(field_name);
-            if (comptime isBasicType(ChildST)) {
-                return try self.base_view.setChildNode(field_gindex, root);
-            } else {
-                const field_data = try TreeViewData.init(
-                    self.base_view.allocator,
-                    self.base_view.pool,
-                    root,
-                );
-                errdefer field_data.deinit(self.base_view.allocator, self.base_view.pool);
-                try self.base_view.setChildData(field_gindex, field_data);
-            }
+            return try self.base_view.setChildNode(field_gindex, root);
         }
 
         pub fn getRoot(self: *Self, comptime field_name: []const u8) !*const [32]u8 {
@@ -100,9 +86,129 @@ pub fn ContainerTreeView(comptime ST: type) type {
 
         /// Get a field by name. If the field is a basic type, returns the value directly.
         /// Caller borrows a copy of the value so there is no need to deinit it.
-            comptime {
-                @setEvalBranchQuota(20000);
-            }
+%%%%%%% Changes from base #1 to side #1
+-        pub fn get(self: *Self, comptime field_name: []const u8) !Field(field_name) {
+             comptime {
+                 @setEvalBranchQuota(20000);
+             }
+             const field_index = comptime ST.getFieldIndex(field_name);
+             const ChildST = ST.getFieldType(field_name);
+             const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
+             if (comptime isBasicType(ChildST)) {
+                 var value: ChildST.Type = undefined;
+                 const child_node = try self.base_view.getChildNode(child_gindex);
+                 try ChildST.tree.toValue(child_node, self.base_view.pool, &value);
+                 return value;
+             } else {
+                 const child_data = try self.base_view.getChildData(child_gindex);
+ 
+                 return .{
+                     .base_view = .{
+                         .allocator = self.base_view.allocator,
+                         .pool = self.base_view.pool,
+                         .data = child_data,
+                     },
+                 };
+             }
+         }
+ 
+         pub fn getValue(self: *Self, allocator: Allocator, comptime field_name: []const u8, out: *FieldValue(field_name)) !void {
+             const ChildST = ST.getFieldType(field_name);
+             if (comptime isBasicType(ChildST)) {
+-                out.* = self.getReadonly(field_name);
+-            }
+-
+-            var child_view = try self.getReadonly(field_name);
+-            try child_view.toValue(allocator, out);
++                out.* = try self.getReadonly(field_name);
++            } else {
++                var child_view = try self.getReadonly(field_name);
++                try child_view.toValue(allocator, out);
++            }
++        }
++
++        /// Get a field by name. If the field is a basic type, returns the value directly.
++        /// Caller borrows a copy of the value so there is no need to deinit it.
++        pub fn getReadonly(self: *Self, comptime field_name: []const u8) !Field(field_name) {
++            comptime {
++                @setEvalBranchQuota(20000);
++            }
++            const field_index = comptime ST.getFieldIndex(field_name);
++            const ChildST = ST.getFieldType(field_name);
++            const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
++            if (comptime isBasicType(ChildST)) {
++                var value: ChildST.Type = undefined;
++                const child_node = try self.base_view.getChildNode(child_gindex);
++                try ChildST.tree.toValue(child_node, self.base_view.pool, &value);
++                return value;
++            } else {
++                const child_data = try self.base_view.getChildDataReadonly(child_gindex);
++
++                return .{
++                    .base_view = .{
++                        .allocator = self.base_view.allocator,
++                        .pool = self.base_view.pool,
++                        .data = child_data,
++                    },
++                };
++            }
+         }
+ 
+         /// Get a field by name. If the field is a basic type, returns the value directly.
+         /// Caller borrows a copy of the value so there is no need to deinit it.
+         pub fn getReadonly(self: *Self, comptime field_name: []const u8) !Field(field_name) {
+             comptime {
+                 @setEvalBranchQuota(20000);
+             }
+             const field_index = comptime ST.getFieldIndex(field_name);
+             const ChildST = ST.getFieldType(field_name);
+             const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
+             if (comptime isBasicType(ChildST)) {
+                 var value: ChildST.Type = undefined;
+                 const child_node = try self.base_view.getChildNode(child_gindex);
+                 try ChildST.tree.toValue(child_node, self.base_view.pool, &value);
+                 return value;
+             } else {
+                 const child_data = try self.base_view.getChildDataReadonly(child_gindex);
+ 
+                 return .{
+                     .base_view = .{
+                         .allocator = self.base_view.allocator,
+                         .pool = self.base_view.pool,
+                         .data = child_data,
+                     },
+                 };
+             }
+         }
+ 
+%%%%%%% Changes from base #2 to side #2
+         pub fn get(self: *const Self, comptime field_name: []const u8) !Field(field_name) {
+             comptime {
+                 @setEvalBranchQuota(20000);
+             }
+             const field_index = comptime ST.getFieldIndex(field_name);
+             const ChildST = ST.getFieldType(field_name);
+             const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
+             if (comptime isBasicType(ChildST)) {
+                 var value: ChildST.Type = undefined;
+                 const child_node = try @constCast(&self.base_view).getChildNode(child_gindex);
+                 try ChildST.tree.toValue(child_node, self.base_view.pool, &value);
+                 return value;
+             } else {
+                 const child_data = try @constCast(&self.base_view).getChildData(child_gindex);
+ 
+                 return .{
+                     .base_view = .{
+                         .allocator = self.base_view.allocator,
+                         .pool = self.base_view.pool,
+                         .data = child_data,
+                     },
+                 };
+             }
+         }
+ 
++++++++ Contents of side #3
+        pub fn get(self: *Self, comptime field_name: []const u8) !Field(field_name) {
             const field_index = comptime ST.getFieldIndex(field_name);
             const ChildST = ST.getFieldType(field_name);
             const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
@@ -124,78 +230,12 @@ pub fn ContainerTreeView(comptime ST: type) type {
             }
         }
 
-        pub fn getValue(self: *Self, allocator: Allocator, comptime field_name: []const u8, out: *FieldValue(field_name)) !void {
-            const ChildST = ST.getFieldType(field_name);
-            if (comptime isBasicType(ChildST)) {
-                out.* = try self.getReadonly(field_name);
-            } else {
-                var child_view = try self.getReadonly(field_name);
-                try child_view.toValue(allocator, out);
-            }
-        }
-
-        /// Get a field by name. If the field is a basic type, returns the value directly.
-        /// Caller borrows a copy of the value so there is no need to deinit it.
-        pub fn getReadonly(self: *Self, comptime field_name: []const u8) !Field(field_name) {
-            comptime {
-                @setEvalBranchQuota(20000);
-            }
-            const field_index = comptime ST.getFieldIndex(field_name);
-            const ChildST = ST.getFieldType(field_name);
-            const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
-            if (comptime isBasicType(ChildST)) {
-                var value: ChildST.Type = undefined;
-                const child_node = try self.base_view.getChildNode(child_gindex);
-                try ChildST.tree.toValue(child_node, self.base_view.pool, &value);
-                return value;
-            } else {
-                const child_data = try self.base_view.getChildDataReadonly(child_gindex);
-
-                return .{
-                    .base_view = .{
-                        .allocator = self.base_view.allocator,
-                        .pool = self.base_view.pool,
-                        .data = child_data,
-                    },
-                };
-            }
-        }
-
-        /// Get a field by name. If the field is a basic type, returns the value directly.
-        /// Caller borrows a copy of the value so there is no need to deinit it.
-        pub fn getReadonly(self: *Self, comptime field_name: []const u8) !Field(field_name) {
-            comptime {
-                @setEvalBranchQuota(20000);
-            }
-            const field_index = comptime ST.getFieldIndex(field_name);
-            const ChildST = ST.getFieldType(field_name);
-            const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
-            if (comptime isBasicType(ChildST)) {
-                var value: ChildST.Type = undefined;
-                const child_node = try self.base_view.getChildNode(child_gindex);
-                try ChildST.tree.toValue(child_node, self.base_view.pool, &value);
-                return value;
-            } else {
-                const child_data = try self.base_view.getChildDataReadonly(child_gindex);
-
-                return .{
-                    .base_view = .{
-                        .allocator = self.base_view.allocator,
-                        .pool = self.base_view.pool,
-                        .data = child_data,
-                    },
-                };
-            }
-        }
-
+>>>>>>> Conflict 2 of 2 ends
         /// Set a field by name. If the field is a basic type, pass the value directly.
         /// If the field is a complex type, pass a TreeView of the corresponding type.
         /// The caller transfers ownership of the `value` TreeView to this parent view.
         /// The existing TreeView, if any, will be deinited by this function.
         pub fn set(self: *Self, comptime field_name: []const u8, value: Field(field_name)) !void {
-            comptime {
-                @setEvalBranchQuota(20000);
-            }
             const field_index = comptime ST.getFieldIndex(field_name);
             const ChildST = ST.getFieldType(field_name);
             const child_gindex = Gindex.fromDepth(ST.chunk_depth, field_index);
@@ -243,10 +283,11 @@ pub fn ContainerTreeView(comptime ST: type) type {
         pub fn toValue(self: *Self, allocator: Allocator, out: *ST.Type) !void {
             try self.commit();
             if (comptime isFixedType(ST)) {
-                try ST.tree.toValue(self.base_view.data.root, self.base_view.pool, out);
+                try ST.tree.toValue(self.base_view.data.root, self.base_view.pool, &out);
             } else {
-                try ST.tree.toValue(allocator, self.base_view.data.root, self.base_view.pool, out);
+                try ST.tree.toValue(allocator, self.base_view.data.root, self.base_view.pool, &out);
             }
+            return out;
         }
 
         pub fn setValue(self: *Self, comptime field_name: []const u8, value: *const FieldValue(field_name)) !void {
@@ -256,12 +297,11 @@ pub fn ContainerTreeView(comptime ST: type) type {
             } else {
                 const root = try ChildST.tree.fromValue(self.base_view.pool, value);
                 errdefer self.base_view.pool.unref(root);
-                var child_view = try ChildST.TreeView.init(
+                const child_view = try ChildST.TreeView.init(
                     self.base_view.allocator,
                     self.base_view.pool,
                     root,
                 );
-                errdefer child_view.deinit();
                 try self.set(field_name, child_view);
             }
         }
@@ -328,8 +368,14 @@ test "TreeView container field roundtrip" {
     };
     try Checkpoint.hashTreeRoot(&expected_checkpoint, &htr_from_value);
 
-    const htr_from_tree = try cp_view.hashTreeRoot();
-    try std.testing.expectEqualSlices(u8, &htr_from_value, htr_from_tree);
+    var htr_from_tree: [32]u8 = undefined;
+    try cp_view.hashTreeRoot(&htr_from_tree);
+
+    try std.testing.expectEqualSlices(
+        u8,
+        &htr_from_value,
+        &htr_from_tree,
+    );
 }
 
 test "TreeView container nested types set/get/commit" {
@@ -384,7 +430,6 @@ test "TreeView container nested types set/get/commit" {
         try bytes_view.push(@as(u8, 0xAA));
         try bytes_view.push(@as(u8, 0xBB));
         try bytes_view.set(1, @as(u8, 0xCC));
-        try bytes_view.commit();
 
         const all = try bytes_view.getAll(allocator);
         defer allocator.free(all);
@@ -401,7 +446,6 @@ test "TreeView container nested types set/get/commit" {
         try std.testing.expectEqual(@as(u16, 0), try basic_vec_view.get(0));
         try basic_vec_view.set(0, @as(u16, 1));
         try basic_vec_view.set(3, @as(u16, 4));
-        try basic_vec_view.commit();
 
         const all = try basic_vec_view.getAll(allocator);
         defer allocator.free(all);
@@ -649,8 +693,9 @@ test "ContainerTreeView - serialize (basic fields)" {
         const view_size = try view.serializedSize();
         try std.testing.expectEqual(tc.expected_serialized.len, view_size);
 
-        const hash_root = try view.hashTreeRoot();
-        try std.testing.expectEqualSlices(u8, &tc.expected_root, hash_root);
+        var hash_root: [32]u8 = undefined;
+        try view.hashTreeRoot(&hash_root);
+        try std.testing.expectEqualSlices(u8, &tc.expected_root, &hash_root);
     }
 }
 
@@ -728,8 +773,9 @@ test "ContainerTreeView - serialize (with nested list)" {
     try std.testing.expectEqualSlices(u8, &expected_serialized, view_serialized);
     try std.testing.expectEqualSlices(u8, value_serialized, view_serialized);
 
+    var hash_root: [32]u8 = undefined;
+    try view.hashTreeRoot(&hash_root);
     // 0xdc3619cbbc5ef0e0a3b38e3ca5d31c2b16868eacb6e4bcf8b4510963354315f5
     const expected_root = [_]u8{ 0xdc, 0x36, 0x19, 0xcb, 0xbc, 0x5e, 0xf0, 0xe0, 0xa3, 0xb3, 0x8e, 0x3c, 0xa5, 0xd3, 0x1c, 0x2b, 0x16, 0x86, 0x8e, 0xac, 0xb6, 0xe4, 0xbc, 0xf8, 0xb4, 0x51, 0x09, 0x63, 0x35, 0x43, 0x15, 0xf5 };
-    const hash_root = try view.hashTreeRoot();
-    try std.testing.expectEqualSlices(u8, &expected_root, hash_root);
+    try std.testing.expectEqualSlices(u8, &expected_root, &hash_root);
 }

@@ -6,7 +6,6 @@ const OffsetIterator = @import("offsets.zig").OffsetIterator;
 const merkleize = @import("hashing").merkleize;
 const mixInLength = @import("hashing").mixInLength;
 const maxChunksToDepth = @import("hashing").maxChunksToDepth;
-const getZeroHash = @import("hashing").getZeroHash;
 const Node = @import("persistent_merkle_tree").Node;
 const tree_view = @import("../tree_view/root.zig");
 const ListBasicTreeView = tree_view.ListBasicTreeView;
@@ -36,12 +35,6 @@ pub fn FixedListType(comptime ST: type, comptime _limit: comptime_int) type {
         pub const chunk_depth: u8 = maxChunksToDepth(max_chunk_count);
 
         pub const default_value: Type = Type.empty;
-
-        pub const default_root: [32]u8 = blk: {
-            var buf = getZeroHash(chunk_depth).*;
-            mixInLength(0, &buf);
-            break :blk buf;
-        };
 
         pub fn equals(a: *const Type, b: *const Type) bool {
             if (a.items.len != b.items.len) {
@@ -456,12 +449,6 @@ pub fn VariableListType(comptime ST: type, comptime _limit: comptime_int) type {
         pub const chunk_depth: u8 = maxChunksToDepth(max_chunk_count);
 
         pub const default_value: Type = Type.empty;
-
-        pub const default_root: [32]u8 = blk: {
-            var buf = getZeroHash(chunk_depth).*;
-            mixInLength(0, &buf);
-            break :blk buf;
-        };
 
         pub fn equals(a: *const Type, b: *const Type) bool {
             if (a.items.len != b.items.len) {

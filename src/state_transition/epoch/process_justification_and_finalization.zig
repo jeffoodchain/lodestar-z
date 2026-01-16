@@ -83,8 +83,6 @@ pub fn weighJustificationAndFinalization(
     try state.setJustificationBits(&new_justification_bits);
 
     // Process finalizations
-    var finalized_previous_justified = false;
-    var finalized_current_justified = false;
     // The 2nd/3rd/4th most recent epochs are all justified, the 2nd using the 4th as source
     if (bits[1] and bits[2] and bits[3] and old_previous_justified_checkpoint_epoch + 3 == current_epoch) {
         try state.setFinalizedCheckpoint(&old_previous_justified_checkpoint);

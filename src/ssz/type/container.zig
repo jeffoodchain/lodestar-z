@@ -69,16 +69,6 @@ pub fn FixedContainerType(comptime ST: type) type {
             break :blk out;
         };
 
-        pub const default_root: [32]u8 = blk: {
-            var buf: [32]u8 = undefined;
-            var chunks = [_][32]u8{[_]u8{0} ** 32} ** ((chunk_count + 1) / 2 * 2);
-            for (fields, 0..) |field, i| {
-                @memcpy(&chunks[i], &field.type.default_root);
-            }
-            merkleize(@ptrCast(&chunks), chunk_depth, &buf) catch unreachable;
-            break :blk buf;
-        };
-
         pub fn equals(a: *const Type, b: *const Type) bool {
             inline for (fields) |field| {
                 if (!field.type.equals(&@field(a, field.name), &@field(b, field.name))) {
@@ -375,16 +365,6 @@ pub fn VariableContainerType(comptime ST: type) type {
                 @field(out, field.name) = field.type.default_value;
             }
             break :blk out;
-        };
-
-        pub const default_root: [32]u8 = blk: {
-            var buf: [32]u8 = undefined;
-            var chunks = [_][32]u8{[_]u8{0} ** 32} ** ((chunk_count + 1) / 2 * 2);
-            for (fields, 0..) |field, i| {
-                @memcpy(&chunks[i], &field.type.default_root);
-            }
-            merkleize(@ptrCast(&chunks), chunk_depth, &buf) catch unreachable;
-            break :blk buf;
         };
 
         pub fn equals(a: *const Type, b: *const Type) bool {

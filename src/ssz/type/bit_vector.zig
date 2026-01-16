@@ -7,7 +7,6 @@ const BoolType = @import("bool.zig").BoolType;
 const hexToBytes = @import("hex").hexToBytes;
 const bytesToHex = @import("hex").bytesToHex;
 const maxChunksToDepth = @import("hashing").maxChunksToDepth;
-const getZeroHash = @import("hashing").getZeroHash;
 const Node = @import("persistent_merkle_tree").Node;
 const BitVectorTreeView = @import("../tree_view/root.zig").BitVectorTreeView;
 
@@ -173,8 +172,6 @@ pub fn BitVectorType(comptime _length: comptime_int) type {
         pub const chunk_depth: u8 = maxChunksToDepth(chunk_count);
 
         pub const default_value: Type = Type.empty;
-
-        pub const default_root: [32]u8 = getZeroHash(chunk_depth).*;
 
         pub fn equals(a: *const Type, b: *const Type) bool {
             return a.equals(b);

@@ -101,8 +101,14 @@ pub fn ArrayCompositeTreeView(comptime ST: type) type {
         }
 
         pub fn setValue(self: *Self, index: usize, value: *const ST.Element.Type) !void {
-            if (index >= length) return error.IndexOutOfBounds;
-            try Chunks.setValue(&self.base_view, index, value);
+            const root = try ST.Element.tree.fromValue(self.base_view.pool, value);
+            errdefer self.base_view.pool.unref(root);
+            const child_view = try ST.Element.TreeView.init(
+                self.base_view.allocator,
+                self.base_view.pool,
+                root,
+            );
+            try self.set(index, child_view);
         }
 
         pub fn getAllReadonly(self: *Self, allocator: Allocator) ![]Element {
