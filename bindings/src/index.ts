@@ -248,6 +248,11 @@ interface Blst {
   aggregateSerializedPublicKeys(serializedPublicKeys: Uint8Array[], pksValidate: boolean): PublicKey;
 }
 
+declare class BeaconStateView {
+  static createFromBytes(fork: string, bytes: Uint8Array): BeaconStateView;
+  slot: number;
+}
+
 type Bindings = {
   pool: {
     ensureCapacity: (capacity: number) => void;
