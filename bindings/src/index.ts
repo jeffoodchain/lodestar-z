@@ -248,9 +248,41 @@ interface Blst {
   aggregateSerializedPublicKeys(serializedPublicKeys: Uint8Array[], pksValidate: boolean): PublicKey;
 }
 
+interface BeaconBlockHeader {
+  slot: number;
+  proposerIndex: number;
+  parentRoot: Uint8Array;
+  stateRoot: Uint8Array;
+  bodyRoot: Uint8Array;
+}
+
+interface Checkpoint {
+  epoch: number;
+  root: Uint8Array;
+}
+
 declare class BeaconStateView {
   static createFromBytes(fork: string, bytes: Uint8Array): BeaconStateView;
   slot: number;
+  root: Uint8Array;
+  epoch: number;
+  genesisTime: number;
+  genesisValidatorsRoot: Uint8Array;
+  latestBlockHeader: BeaconBlockHeader;
+  previousJustifiedCheckpoint: Checkpoint;
+  currentJustifiedCheckpoint: Checkpoint;
+  finalizedCheckpoint: Checkpoint;
+  proposers: number[];
+  proposersNextEpoch: number[] | null;
+  getBalance(index: number): bigint;
+  isExecutionEnabled(fork: string, signedBlockBytes: Uint8Array): boolean;
+  isExecutionStateType(): boolean;
+  getEffectiveBalanceIncrementsZeroInactive(): Uint16Array;
+  getFinalizedRootProof(): Uint8Array[];
+  computeUnrealizedCheckpoints(): {
+    justifiedCheckpoint: Checkpoint;
+    finalizedCheckpoint: Checkpoint;
+  };
 }
 
 type Bindings = {

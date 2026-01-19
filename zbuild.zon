@@ -259,6 +259,7 @@
                     .config,
                     .state_transition,
                     .persistent_merkle_tree,
+                    .consensus_types,
                     "zapi:napi",
                 },
             },

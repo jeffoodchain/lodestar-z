@@ -8,6 +8,12 @@ const EpochTransitionCache = @import("../cache/epoch_transition_cache.zig").Epoc
 const GENESIS_EPOCH = @import("preset").GENESIS_EPOCH;
 const computeEpochAtSlot = @import("../utils/epoch.zig").computeEpochAtSlot;
 const getBlockRoot = @import("../utils/block_root.zig").getBlockRoot;
+const ForkSeq = @import("config").ForkSeq;
+
+pub const UnrealizedCheckpoints = struct {
+    justified_checkpoint: Checkpoint,
+    finalized_checkpoint: Checkpoint,
+};
 
 /// Update justified and finalized checkpoints depending on network participation.
 ///

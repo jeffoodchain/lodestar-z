@@ -150,3 +150,22 @@ printDuration("processSlots", () => state.processSlots(state.slot + 1));
 +console.log('loaded state view');
 +
 +console.log(state.slot);
+%%%%%%%%%%% Changes from base to side #2 (adds terminating newline)
+-console.log(state.slot);
++console.log("slot:", state.slot);
++console.log("root:", state.root);
++console.log("epoch:", state.epoch);
++console.log("genesisTime:", state.genesisTime);
++console.log("genesisValidatorsRoot:", state.genesisValidatorsRoot);
++console.log("latestBlockHeader:", state.latestBlockHeader);
++console.log("previousJustifiedCheckpoint:", state.previousJustifiedCheckpoint);
++console.log("currentJustifiedCheckpoint:", state.currentJustifiedCheckpoint);
++console.log("finalizedCheckpoint:", state.finalizedCheckpoint);
++console.log("proposers:", state.proposers);
++console.log("proposersNextEpoch:", state.proposersNextEpoch);
++console.log("getBalance(0):", state.getBalance(0));
++console.log("getBalance(100):", state.getBalance(100));
++console.log("getFinalizedRootProof():", state.getFinalizedRootProof());
++console.log("isExecutionStateType():", state.isExecutionStateType());
++console.log("getEffectiveBalanceIncrementsZeroInactive() length:", state.getEffectiveBalanceIncrementsZeroInactive().length);
++console.log("computeUnrealizedCheckpoints():", state.computeUnrealizedCheckpoints());
