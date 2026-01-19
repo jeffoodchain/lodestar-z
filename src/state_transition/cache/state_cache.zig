@@ -2,16 +2,11 @@ const std = @import("std");
 const types = @import("consensus_types");
 const Allocator = std.mem.Allocator;
 const BeaconConfig = @import("config").BeaconConfig;
-const TestCachedBeaconState = @import("../test_utils/root.zig").TestCachedBeaconState;
+const TestCachedBeaconStateAllForks = @import("../test_utils/root.zig").TestCachedBeaconStateAllForks;
 const EpochCacheRc = @import("./epoch_cache.zig").EpochCacheRc;
 const EpochCache = @import("./epoch_cache.zig").EpochCache;
 const EpochCacheImmutableData = @import("./epoch_cache.zig").EpochCacheImmutableData;
 const EpochCacheOpts = @import("./epoch_cache.zig").EpochCacheOpts;
-%%%%%%% Changes from base to side #1
--const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
-+const AnyBeaconState = @import("fork_types").AnyBeaconState;
-+++++++ Contents of side #2
-const BeaconState = @import("../types/beacon_state.zig").BeaconState;
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
 const CloneOpts = @import("ssz").BaseTreeView.CloneOpts;
 const SlashingsCache = @import("./slashings_cache.zig").SlashingsCache;
@@ -23,7 +18,7 @@ pub const ProposerRewards = struct {
     slashing: u64 = 0,
 };
 
-pub const CachedBeaconState = struct {
+pub const CachedBeaconStateAllForks = struct {
     allocator: Allocator,
     /// only a reference to the singleton BeaconConfig
     config: *const BeaconConfig,
@@ -66,7 +61,7 @@ pub const CachedBeaconState = struct {
     }
 
     // TODO: do we need another getConst()?
-    pub fn getEpochCache(self: *const CachedBeaconState) *EpochCache {
+    pub fn getEpochCache(self: *const CachedBeaconStateAllForks) *EpochCache {
         return self.epoch_cache_ref.get();
     }
 
@@ -106,16 +101,9 @@ pub const CachedBeaconState = struct {
         return cached_state;
     }
 
-    pub fn deinit(self: *CachedBeaconState) void {
+    pub fn deinit(self: *CachedBeaconStateAllForks) void {
         // should not deinit config since we don't take ownership of it, it's singleton across applications
         self.epoch_cache_ref.release();
-%%%%%%% Changes from base to side #1
--        self.state.deinit(self.allocator);
-+        self.slashings_cache.deinit();
-+        self.state.deinit();
-         self.allocator.destroy(self.state);
-+++++++ Contents of side #2
-        self.state.deinit();
         self.allocator.destroy(self.state);
     }
 
@@ -138,19 +126,19 @@ pub const CachedBeaconState = struct {
     // need to do this once we switch to TreeView
 
     // TODO: implement getCachedBeaconState
-    // this is used to create a CachedBeaconState based on a tree and an exising CachedBeaconState at fork transition
+    // this is used to create a CachedBeaconStateAllForks based on a tree and an exising CachedBeaconStateAllForks at fork transition
     // implement this once we switch to TreeView
 
     /// Gets the beacon proposer index for a given slot.
     /// For the Fulu fork, this uses `proposer_lookahead` from the state.
     /// For earlier forks, this uses `EpochCache.getBeaconProposer()`.
-    pub fn getBeaconProposer(self: *const CachedBeaconState, slot: types.primitive.Slot.Type) !ValidatorIndex {
+    pub fn getBeaconProposer(self: *const CachedBeaconStateAllForks, slot: types.primitive.Slot.Type) !ValidatorIndex {
         const preset_import = @import("preset").preset;
         const computeEpochAtSlot = @import("../utils/epoch.zig").computeEpochAtSlot;
 
         // For Fulu, use proposer_lookahead from state
-        if (self.state.forkSeq().gte(.fulu)) {
-            const current_epoch = computeEpochAtSlot(try self.state.slot());
+        if (self.state.isFulu()) {
+            const current_epoch = computeEpochAtSlot(self.state.slot());
             const slot_epoch = computeEpochAtSlot(slot);
 
             // proposer_lookahead covers current_epoch through current_epoch + MIN_SEED_LOOKAHEAD
@@ -165,7 +153,7 @@ pub const CachedBeaconState = struct {
             const slot_in_epoch = slot % preset_import.SLOTS_PER_EPOCH;
             const index = epoch_offset * preset_import.SLOTS_PER_EPOCH + slot_in_epoch;
 
-            return try proposer_lookahead.get(index);
+            return proposer_lookahead[index];
         }
         return self.getEpochCache().getBeaconProposer(slot);
     }
@@ -186,7 +174,7 @@ pub const CachedBeaconState = struct {
     }
 };
 
-test "CachedBeaconState.clone()" {
+test "CachedBeaconStateAllForks.clone()" {
     const allocator = std.testing.allocator;
     const pool_size = 256 * 5;
     var pool = try Node.Pool.init(allocator, pool_size);
@@ -195,7 +183,7 @@ test "CachedBeaconState.clone()" {
     var test_state = try TestCachedBeaconState.init(allocator, &pool, 256);
     defer test_state.deinit();
     // test clone() api works fine with no memory leak
-    const cloned_cached_state = try test_state.cached_state.clone(allocator, .{});
+    const cloned_cached_state = try test_state.cached_state.clone(allocator);
     defer {
         cloned_cached_state.deinit();
         allocator.destroy(cloned_cached_state);

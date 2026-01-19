@@ -24,7 +24,7 @@ const verify = @import("../utils/bls.zig").verify;
 -const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
 +++++++ Contents of side #2
 const ForkSeq = types.primitive.ForkSeq.Type;
-const CachedBeaconState = @import("../cache/state_cache.zig").CachedBeaconState;
+const CachedBeaconStateAllForks = @import("../cache/state_cache.zig").CachedBeaconStateAllForks;
 const getMaxEffectiveBalance = @import("../utils/validator.zig").getMaxEffectiveBalance;
 const increaseBalance = @import("../utils/balance.zig").increaseBalance;
 const verifyMerkleBranch = @import("../utils/verify_merkle_branch.zig").verifyMerkleBranch;
@@ -40,10 +40,10 @@ pub const DepositData = union(enum) {
         };
     }
 
-    pub fn withdrawalCredentials(self: *const DepositData) *const WithdrawalCredentials {
+    pub fn withdrawalCredentials(self: *const DepositData) WithdrawalCredentials {
         return switch (self.*) {
-            .phase0 => |*data| &data.withdrawal_credentials,
-            .electra => |*data| &data.withdrawal_credentials,
+            .phase0 => |data| data.withdrawal_credentials,
+            .electra => |data| data.withdrawal_credentials,
         };
     }
 
@@ -73,15 +73,12 @@ pub fn processDeposit(
     // verify the merkle branch
     var deposit_data_root: Root = undefined;
     try types.phase0.DepositData.hashTreeRoot(&deposit.data, &deposit_data_root);
-
-    var eth1_data = try state.eth1Data();
-    const deposit_root = try eth1_data.getRoot("deposit_root");
     if (!verifyMerkleBranch(
         deposit_data_root,
         &deposit.proof,
         c.DEPOSIT_CONTRACT_TREE_DEPTH + 1,
-        @intCast(try state.eth1DepositIndex()),
-        deposit_root.*,
+        state.eth1DepositIndex(),
+        state.eth1Data().deposit_root,
     )) {
         return error.InvalidMerkleProof;
     }
@@ -133,7 +130,6 @@ pub fn applyDeposit(
             .slot = c.GENESIS_SLOT, // Use GENESIS_SLOT to distinguish from a pending deposit request
         };
 
-        var pending_deposits = try state.pendingDeposits();
         if (is_new_validator) {
             if (validateDepositSignature(config, pubkey, withdrawal_credentials, amount, signature)) {
                 try addValidatorToRegistry(fork, allocator, epoch_cache, state, pubkey, withdrawal_credentials, 0);
@@ -143,7 +139,7 @@ pub fn applyDeposit(
                 // TODO may be a useful metric to track
             }
         } else {
-            try pending_deposits.pushValue(&pending_deposit);
+            try state.pendingDeposits().append(allocator, pending_deposit);
         }
     }
 }
@@ -173,10 +169,9 @@ pub fn addValidatorToRegistry(
         .withdrawable_epoch = c.FAR_FUTURE_EPOCH,
         .effective_balance = effective_balance,
         .slashed = false,
-    };
-    try validators.pushValue(&validator);
+    });
 
-    const validator_index = (try validators.length()) - 1;
+    const validator_index = validators.items.len - 1;
     // TODO Electra: Review this
     // Updating here is better than updating at once on epoch transition
     // - Simplify genesis fn applyDeposits(): effectiveBalanceIncrements is populated immediately
@@ -193,13 +188,13 @@ pub fn addValidatorToRegistry(
         try inactivity_scores.push(0);
 
         // add participation caches
-        var previous_epoch_participation = try state.previousEpochParticipation();
-        try previous_epoch_participation.push(0);
-        var state_current_epoch_participation = try state.currentEpochParticipation();
-        try state_current_epoch_participation.push(0);
+        try state.previousEpochParticipations().append(allocator, 0);
+        const state_current_epoch_participations = state.currentEpochParticipations();
+        try state_current_epoch_participations.append(allocator, 0);
     }
-    var balances = try state.balances();
-    try balances.push(amount);
+    const balances = state.balances();
+
+    try balances.append(allocator, amount);
 }
 
 /// refer to https://github.com/ethereum/consensus-specs/blob/v1.5.0/specs/electra/beacon-chain.md#new-is_valid_deposit_signature
@@ -221,9 +216,9 @@ pub fn validateDepositSignature(
 
     // fork-agnostic domain since deposits are valid across forks
     var domain: Domain = undefined;
-    try computeDomain(DOMAIN_DEPOSIT, GENESIS_FORK_VERSION, ZERO_HASH, &domain);
+    computeDomain(DOMAIN_DEPOSIT, GENESIS_FORK_VERSION, ZERO_HASH, &domain) catch return false;
     var signing_root: Root = undefined;
-    try computeSigningRoot(types.phase0.DepositMessage, &deposit_message, &domain, &signing_root);
+    computeSigningRoot(types.phase0.DepositMessage, &deposit_message, &domain, &signing_root) catch return false;
 
     // Pubkeys must be checked for group + inf. This must be done only once when the validator deposit is processed
     const public_key = try blst.PublicKey.uncompress(pubkey);

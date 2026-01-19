@@ -47,63 +47,60 @@ pub fn weighJustificationAndFinalization(
     const current_epoch = computeEpochAtSlot(try state.slot());
     const previous_epoch = if (current_epoch == GENESIS_EPOCH) GENESIS_EPOCH else current_epoch - 1;
 
-    var old_previous_justified_checkpoint: types.phase0.Checkpoint.Type = undefined;
-    try state.previousJustifiedCheckpoint(&old_previous_justified_checkpoint);
-    var old_current_justified_checkpoint: types.phase0.Checkpoint.Type = undefined;
-    try state.currentJustifiedCheckpoint(&old_current_justified_checkpoint);
-
-    const old_previous_justified_checkpoint_epoch = old_previous_justified_checkpoint.epoch;
-    const old_current_justified_checkpoint_epoch = old_current_justified_checkpoint.epoch;
+    const old_previous_justified_checkpoint = state.previousJustifiedCheckpoint().*;
+    const old_current_justified_checkpoint = state.currentJustifiedCheckpoint().*;
 
     // Process justifications
-    try state.setPreviousJustifiedCheckpoint(&old_current_justified_checkpoint);
-    var justification_bits = try state.justificationBits();
-    var bits = try justification_bits.toBoolArray();
+    state.previousJustifiedCheckpoint().* = old_current_justified_checkpoint;
+    const justification_bits = state.justificationBits();
+    var bits = [_]bool{false} ** JustificationBits.length;
+    justification_bits.toBoolArray(&bits);
 
     // Rotate bits
-    var idx: usize = bits.len - 1;
-    while (idx > 0) : (idx -= 1) {
-        bits[idx] = bits[idx - 1];
+    var i: usize = bits.len - 1;
+    while (i > 0) : (i -= 1) {
+        bits[i] = bits[i - 1];
     }
     bits[0] = false;
 
+    const current_justified_checkpoint = state.currentJustifiedCheckpoint();
     if (previous_epoch_target_balance * 3 > total_active_balance * 2) {
-        const new_current_justified_checkpoint = Checkpoint{
+        current_justified_checkpoint.* = Checkpoint{
             .epoch = previous_epoch,
             .root = (try getBlockRoot(fork, state, previous_epoch)).*,
         };
-        try state.setCurrentJustifiedCheckpoint(&new_current_justified_checkpoint);
         bits[1] = true;
     }
 
     if (current_epoch_target_balance * 3 > total_active_balance * 2) {
-        const new_current_justified_checkpoint = Checkpoint{
+        current_justified_checkpoint.* = Checkpoint{
             .epoch = current_epoch,
             .root = (try getBlockRoot(fork, state, current_epoch)).*,
         };
-        try state.setCurrentJustifiedCheckpoint(&new_current_justified_checkpoint);
         bits[0] = true;
     }
 
-    const new_justification_bits = try JustificationBits.fromBoolArray(bits);
-    try state.setJustificationBits(&new_justification_bits);
+    justification_bits.* = try JustificationBits.fromBoolArray(bits);
 
+    // TODO: Consider rendering bits as array of boolean for faster repeated access here
+
+    const finalized_checkpoint = state.finalizedCheckpoint();
     // Process finalizations
     // The 2nd/3rd/4th most recent epochs are all justified, the 2nd using the 4th as source
-    if (bits[1] and bits[2] and bits[3] and old_previous_justified_checkpoint_epoch + 3 == current_epoch) {
-        try state.setFinalizedCheckpoint(&old_previous_justified_checkpoint);
+    if (bits[1] and bits[2] and bits[3] and old_previous_justified_checkpoint.epoch + 3 == current_epoch) {
+        finalized_checkpoint.* = old_previous_justified_checkpoint;
     }
     // The 2nd/3rd most recent epochs are both justified, the 2nd using the 3rd as source
-    if (bits[1] and bits[2] and old_previous_justified_checkpoint_epoch + 2 == current_epoch) {
-        try state.setFinalizedCheckpoint(&old_previous_justified_checkpoint);
+    if (bits[1] and bits[2] and old_previous_justified_checkpoint.epoch + 2 == current_epoch) {
+        finalized_checkpoint.* = old_previous_justified_checkpoint;
     }
     // The 1st/2nd/3rd most recent epochs are all justified, the 1st using the 3rd as source
-    if (bits[0] and bits[1] and bits[2] and old_current_justified_checkpoint_epoch + 2 == current_epoch) {
-        try state.setFinalizedCheckpoint(&old_current_justified_checkpoint);
+    if (bits[0] and bits[1] and bits[2] and old_current_justified_checkpoint.epoch + 2 == current_epoch) {
+        finalized_checkpoint.* = old_current_justified_checkpoint;
     }
     // The 1st/2nd most recent epochs are both justified, the 1st using the 2nd as source
-    if (bits[0] and bits[1] and old_current_justified_checkpoint_epoch + 1 == current_epoch) {
-        try state.setFinalizedCheckpoint(&old_current_justified_checkpoint);
+    if (bits[0] and bits[1] and old_current_justified_checkpoint.epoch + 1 == current_epoch) {
+        finalized_checkpoint.* = old_current_justified_checkpoint;
     }
 }
 

@@ -1,11 +1,10 @@
 //! Benchmark for fork-specific epoch processing.
 //!
 //! Uses a mainnet state at slot 13180928.
-//! Run with: zig build run:bench_process_epoch -Doptimize=ReleaseFast
+//! Run with: zig build run:bench_process_epoch -Doptimize=ReleaseFast [-- /path/to/state.ssz]
 
 const std = @import("std");
 const zbench = @import("zbench");
-const Node = @import("persistent_merkle_tree").Node;
 const state_transition = @import("state_transition");
 const types = @import("consensus_types");
 const config = @import("config");
@@ -13,7 +12,8 @@ const download_era_options = @import("download_era_options");
 const era = @import("era");
 const AnyBeaconState = @import("fork_types").AnyBeaconState;
 const ForkSeq = config.ForkSeq;
-const CachedBeaconState = state_transition.CachedBeaconState;
+const CachedBeaconStateAllForks = state_transition.CachedBeaconStateAllForks;
+const BeaconStateAllForks = state_transition.BeaconStateAllForks;
 const EpochTransitionCache = state_transition.EpochTransitionCache;
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
 const slotFromStateBytes = @import("utils.zig").slotFromStateBytes;
@@ -629,20 +629,18 @@ pub fn main() !void {
 
     const allocator = gpa.allocator();
     const stdout = std.io.getStdOut().writer();
-    var pool = try Node.Pool.init(allocator, 10_000_000);
-    defer pool.deinit();
 
-    // Use download_era_options.era_files[0] for state
-    const era_path = try std.fs.path.join(
-        allocator,
-        &[_][]const u8{ download_era_options.era_out_dir, download_era_options.era_files[0] },
-    );
-    defer allocator.free(era_path);
+    // Parse CLI args for state file path
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
 
-    var era_reader = try era.Reader.open(allocator, config.mainnet.config, era_path);
-    defer era_reader.close(allocator);
+    const state_path = if (args.len > 1) args[1] else "bench/state_transition/state.ssz";
 
-    const state_bytes = try era_reader.readSerializedState(allocator, null);
+    try stdout.print("Loading state from {s}...\n", .{state_path});
+
+    const state_file = try std.fs.cwd().openFile(state_path, .{});
+    defer state_file.close();
+    const state_bytes = try state_file.readToEndAlloc(allocator, 10_000_000_000);
     defer allocator.free(state_bytes);
 
     try stdout.print("State file loaded: {} bytes\n", .{state_bytes.len});
@@ -656,7 +654,7 @@ pub fn main() !void {
     // Dispatch to fork-specific loading
     inline for (comptime std.enums.values(ForkSeq)) |fork| {
         if (detected_fork == fork) {
-            return runBenchmark(fork, allocator, &pool, stdout, state_bytes, chain_config);
+            return runBenchmark(fork, allocator, stdout, state_bytes, chain_config);
         }
     }
     return error.NoBenchmarkRan;
@@ -665,7 +663,6 @@ pub fn main() !void {
 fn runBenchmark(
     comptime fork: ForkSeq,
     allocator: std.mem.Allocator,
-    pool: *Node.Pool,
     stdout: anytype,
     state_bytes: []const u8,
     chain_config: config.ChainConfig,
@@ -716,7 +713,7 @@ fn runBenchmark(
         allocator.destroy(cached_state);
     }
 
-    try stdout.print("Cached state created at slot {}\n", .{try cached_state.state.slot()});
+    try stdout.print("Cached state created at slot {}\n", .{cached_state.state.slot()});
     try stdout.print("\nStarting process_epoch benchmarks for {s} fork...\n\n", .{@tagName(fork)});
 
     var bench = zbench.Benchmark.init(allocator, .{ .iterations = 50 });

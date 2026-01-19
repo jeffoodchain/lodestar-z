@@ -23,3 +23,14 @@ node_modules/
 +flamegraph.html
 +perf.data
 +perf.data.old
+%%%%%%%%%%% Changes from base to side #2 (removes terminating newline)
+-*.era
+-
+-# perf
+-flamegraph.html
+-perf.data
+-perf.data.old
+-
+-# js
+-node_modules/
++*.era

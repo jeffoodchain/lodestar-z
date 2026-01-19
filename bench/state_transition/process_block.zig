@@ -5,7 +5,6 @@
 
 const std = @import("std");
 const zbench = @import("zbench");
-const Node = @import("persistent_merkle_tree").Node;
 const state_transition = @import("state_transition");
 const types = @import("consensus_types");
 const config = @import("config");
@@ -133,7 +132,7 @@ fn ProcessRandaoBench(comptime fork: ForkSeq, comptime opts: BenchOpts) type {
         body: *const BeaconBlockBody(.full, fork),
 
         pub fn run(self: @This(), allocator: std.mem.Allocator) void {
-            const cloned = self.cached_state.clone(allocator, .{}) catch unreachable;
+            const cloned = self.cached_state.clone(allocator) catch unreachable;
             defer {
                 cloned.deinit();
                 allocator.destroy(cloned);
@@ -180,7 +179,7 @@ fn ProcessOperationsBench(comptime fork: ForkSeq, comptime opts: BenchOpts) type
         body: *const BeaconBlockBody(.full, fork),
 
         pub fn run(self: @This(), allocator: std.mem.Allocator) void {
-            const cloned = self.cached_state.clone(allocator, .{}) catch unreachable;
+            const cloned = self.cached_state.clone(allocator) catch unreachable;
             defer {
                 cloned.deinit();
                 allocator.destroy(cloned);
@@ -207,7 +206,7 @@ fn ProcessSyncAggregateBench(comptime fork: ForkSeq, comptime opts: BenchOpts) t
         body: *const BeaconBlockBody(.full, fork),
 
         pub fn run(self: @This(), allocator: std.mem.Allocator) void {
-            const cloned = self.cached_state.clone(allocator, .{}) catch unreachable;
+            const cloned = self.cached_state.clone(allocator) catch unreachable;
             defer {
                 cloned.deinit();
                 allocator.destroy(cloned);
@@ -232,7 +231,7 @@ fn ProcessBlockBench(comptime fork: ForkSeq, comptime opts: BenchOpts) type {
         block: *const BeaconBlock(.full, fork),
 
         pub fn run(self: @This(), allocator: std.mem.Allocator) void {
-            const cloned = self.cached_state.clone(allocator, .{}) catch unreachable;
+            const cloned = self.cached_state.clone(allocator) catch unreachable;
             defer {
                 cloned.deinit();
                 allocator.destroy(cloned);
@@ -442,21 +441,15 @@ pub fn main() !void {
 
     const allocator = gpa.allocator();
     const stdout = std.io.getStdOut().writer();
-    var pool = try Node.Pool.init(allocator, 10_000_000);
-    defer pool.deinit();
 
-    // Use download_era_options.era_files[0] for state
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+    const state_path = if (args.len > 1) args[1] else "bench/state_transition/state.ssz";
+    const block_path = if (args.len > 2) args[2] else "bench/state_transition/block.ssz";
 
-    const era_path_0 = try std.fs.path.join(
-        allocator,
-        &[_][]const u8{ download_era_options.era_out_dir, download_era_options.era_files[0] },
-    );
-    defer allocator.free(era_path_0);
-
-    var era_reader_0 = try era.Reader.open(allocator, config.mainnet.config, era_path_0);
-    defer era_reader_0.close(allocator);
-
-    const state_bytes = try era_reader_0.readSerializedState(allocator, null);
+    const state_file = try std.fs.cwd().openFile(state_path, .{});
+    defer state_file.close();
+    const state_bytes = try state_file.readToEndAlloc(allocator, 10_000_000_000);
     defer allocator.free(state_bytes);
 
     const chain_config = config.mainnet.chain_config;
@@ -464,24 +457,13 @@ pub fn main() !void {
     const detected_fork = config.mainnet.config.forkSeq(slot);
     try stdout.print("Benchmarking processBlock with state at fork: {s} (slot {})\n", .{ @tagName(detected_fork), slot });
 
-    // Use download_era_options.era_files[1] for state
-
-    const era_path_1 = try std.fs.path.join(
-        allocator,
-        &[_][]const u8{ download_era_options.era_out_dir, download_era_options.era_files[1] },
-    );
-    defer allocator.free(era_path_1);
-
-    var era_reader_1 = try era.Reader.open(allocator, config.mainnet.config, era_path_1);
-    defer era_reader_1.close(allocator);
-
-    const block_slot = try era.era.computeStartBlockSlotFromEraNumber(era_reader_1.era_number) + 1;
-
-    const block_bytes = try era_reader_1.readSerializedBlock(allocator, block_slot) orelse return error.InvalidEraFile;
+    const block_file = try std.fs.cwd().openFile(block_path, .{});
+    defer block_file.close();
+    const block_bytes = try block_file.readToEndAlloc(allocator, 100_000_000);
     defer allocator.free(block_bytes);
 
     inline for (comptime std.enums.values(ForkSeq)) |fork| {
-        if (detected_fork == fork) return runBenchmark(fork, allocator, &pool, stdout, state_bytes, block_bytes, chain_config);
+        if (detected_fork == fork) return runBenchmark(fork, allocator, stdout, state_bytes, block_bytes, chain_config);
     }
     return error.NoBenchmarkRan;
 }
@@ -576,7 +558,7 @@ fn runBenchmark(
     try bench.addParam("process_block", &ProcessBlockBench(fork, .{ .verify_signature = true }){ .cached_state = cached_state, .block = block }, .{});
     try bench.addParam("process_block_no_sig", &ProcessBlockBench(fork, .{ .verify_signature = false }){ .cached_state = cached_state, .block = block }, .{});
 
-    // // Segmented benchmark (step-by-step timing)
+    // Segmented benchmark (step-by-step timing)
     resetSegmentStats();
     try bench.addParam("block(segments)", &ProcessBlockSegmentedBench(fork){ .cached_state = cached_state, .block = block, .body = body }, .{});
 
