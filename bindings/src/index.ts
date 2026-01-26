@@ -274,6 +274,9 @@ declare class BeaconStateView {
   finalizedCheckpoint: Checkpoint;
   proposers: number[];
   proposersNextEpoch: number[] | null;
+  clonedCount: number;
+  clonedCountWithTransferCache: number;
+  createdWithTransferCache: boolean;
   pendingDepositsLength: number;
   pendingPartialWithdrawalsLength: number;
   pendingConsolidationsLength: number;
