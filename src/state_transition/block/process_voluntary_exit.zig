@@ -63,18 +63,13 @@ pub fn getVoluntaryExitValidity(
     var validators = try state.validators();
     const validators_len = try validators.length();
     if (voluntary_exit.validator_index >= validators_len) {
-        return .inactive;
+        return false;
     }
 
     var validator = try validators.get(@intCast(voluntary_exit.validator_index));
     const current_epoch = epoch_cache.epoch;
 
-    // verify the validator is active
-    if (!try isActiveValidatorView(&validator, current_epoch)) {
-        return .inactive;
-    }
-
-    // verify exit has not been initiated
+    const activation_epoch = try validator.get("activation_epoch");
     const exit_epoch = try validator.get("exit_epoch");
     if (exit_epoch != FAR_FUTURE_EPOCH) {
         return .already_exited;

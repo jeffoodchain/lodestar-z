@@ -3,11 +3,6 @@ const Allocator = std.mem.Allocator;
 const types = @import("consensus_types");
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
 const preset = @import("preset").preset;
-%%%%%%% Changes from base to side #1
--const BeaconStateAllForks = @import("../types/beacon_state.zig").BeaconStateAllForks;
-+const AnyBeaconState = @import("fork_types").AnyBeaconState;
-+++++++ Contents of side #2
-const BeaconState = @import("../types/beacon_state.zig").BeaconState;
 const getSeed = @import("./seed.zig").getSeed;
 const c = @import("constants");
 const innerShuffleList = @import("./shuffle.zig").innerShuffleList;

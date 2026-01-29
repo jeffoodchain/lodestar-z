@@ -35,8 +35,7 @@
      _ = @import("utils/validator.zig");
      _ = @import("utils/verify_merkle_branch.zig");
  }
-+++++++ Contents of side #2
-%%%%%%% Changes from base #2 to side #3
+%%%%%%%%%%% Changes from base to side #2
  // Root file to run only state_transition/utils tests.
  //
  // This exists because `zig test` compiles the entire root module before applying
@@ -61,7 +60,7 @@
      _ = @import("utils/finality.zig");
      _ = @import("utils/math.zig");
      _ = @import("utils/process_proposer_lookahead.zig");
--    _ = @import("utils/pubkey_index_map.zig");
++    _ = @import("utils/pubkey_index_map.zig");
      _ = @import("utils/reference_count.zig");
      _ = @import("utils/seed.zig");
      _ = @import("utils/shuffle.zig");
@@ -72,4 +71,4 @@
      _ = @import("utils/validator.zig");
      _ = @import("utils/verify_merkle_branch.zig");
  }
->>>>>>> Conflict 1 of 1 ends
+>>>>>>>>>>> Conflict 1 of 1 ends

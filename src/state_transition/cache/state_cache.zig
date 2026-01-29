@@ -11,6 +11,16 @@ const ValidatorIndex = types.primitive.ValidatorIndex.Type;
 const CloneOpts = @import("ssz").BaseTreeView.CloneOpts;
 const SlashingsCache = @import("./slashings_cache.zig").SlashingsCache;
 const Node = @import("persistent_merkle_tree").Node;
+%%%%%%% Changes from base #1 to side #2
+-const Node = @import("persistent_merkle_tree").Node;
+%%%%%%% Changes from base #2 to side #3
+-
+-pub const ProposerRewards = struct {
+-    attestations: u64 = 0,
+-    sync_aggregate: u64 = 0,
+-    slashing: u64 = 0,
+-};
++const Node = @import("persistent_merkle_tree").Node;
 
 pub const ProposerRewards = struct {
     attestations: u64 = 0,
@@ -19,6 +29,16 @@ pub const ProposerRewards = struct {
 };
 
 pub const CachedBeaconStateAllForks = struct {
+%%%%%%% Changes from base #1 to side #2
+ pub const CachedBeaconState = struct {
+%%%%%%% Changes from base #2 to side #3
++pub const ProposerRewards = struct {
++    attestations: u64 = 0,
++    sync_aggregate: u64 = 0,
++    slashing: u64 = 0,
++};
++
+ pub const CachedBeaconState = struct {
     allocator: Allocator,
     /// only a reference to the singleton BeaconConfig
     config: *const BeaconConfig,
@@ -30,6 +50,14 @@ pub const CachedBeaconStateAllForks = struct {
     state: *AnyBeaconState,
     /// Proposer rewards accumulated during block processing
     proposer_rewards: ProposerRewards,
+%%%%%%% Changes from base #1 to side #2
+-    state: *AnyBeaconState,
++    state: *BeaconState,
+%%%%%%% Changes from base #2 to side #3
+-    state: *BeaconState,
++    state: *AnyBeaconState,
+     /// Proposer rewards accumulated during block processing
+     proposer_rewards: ProposerRewards,
 
     cloned_count: u32 = 0,
     cloned_count_with_transfer_cache: u32 = 0,
@@ -46,6 +74,22 @@ pub const CachedBeaconStateAllForks = struct {
     }
 
     pub fn init(self: *CachedBeaconState, allocator: Allocator, state: *AnyBeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !void {
+%%%%%%% Changes from base #1 to side #2
+-    pub fn createCachedBeaconState(allocator: Allocator, state: *AnyBeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*CachedBeaconState {
++    pub fn createCachedBeaconState(allocator: Allocator, state: *BeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*CachedBeaconState {
+%%%%%%% Changes from base #2 to side #3
+-    pub fn createCachedBeaconState(allocator: Allocator, state: *BeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*CachedBeaconState {
++    pub fn createCachedBeaconState(allocator: Allocator, state: *AnyBeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !*CachedBeaconState {
+         const cached_state = try allocator.create(CachedBeaconState);
+         errdefer allocator.destroy(cached_state);
+ 
+         try cached_state.init(allocator, state, immutable_data, option);
+ 
+         return cached_state;
+     }
+ 
+-    pub fn init(self: *CachedBeaconState, allocator: Allocator, state: *BeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !void {
++    pub fn init(self: *CachedBeaconState, allocator: Allocator, state: *AnyBeaconState, immutable_data: EpochCacheImmutableData, option: ?EpochCacheOpts) !void {
         const epoch_cache = try EpochCache.createFromState(allocator, state, immutable_data, option);
         errdefer epoch_cache.deinit();
         const epoch_cache_ref = try EpochCacheRc.init(allocator, epoch_cache);

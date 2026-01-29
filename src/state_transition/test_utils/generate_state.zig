@@ -181,9 +181,11 @@ pub const TestCachedBeaconStateAllForks = struct {
             allocator.destroy(pubkey_index_map);
         }
         const index_pubkey_cache = try allocator.create(Index2PubkeyCache);
-        errdefer allocator.destroy(index_pubkey_cache);
+        errdefer {
+            index_pubkey_cache.deinit();
+            allocator.destroy(index_pubkey_cache);
+        }
         index_pubkey_cache.* = Index2PubkeyCache.init(allocator);
-        errdefer index_pubkey_cache.deinit();
         const chain_config = getConfig(active_chain_config, fork, fork_epoch);
         const config = try allocator.create(BeaconConfig);
         errdefer allocator.destroy(config);
@@ -244,7 +246,6 @@ pub const TestCachedBeaconStateAllForks = struct {
         self.cached_state.deinit();
         self.allocator.destroy(self.cached_state);
         self.pubkey_index_map.deinit();
-        self.allocator.destroy(self.pubkey_index_map);
         self.index_pubkey_cache.deinit();
         self.epoch_transition_cache.deinit();
         @import("../state_transition.zig").deinitStateTransition();

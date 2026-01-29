@@ -10,6 +10,22 @@ pub const PubkeyIndexMap = std.AutoHashMap([48]u8, u64);
 pub const Index2PubkeyCache = std.ArrayList(blst.PublicKey);
 
 /// Populate `pubkey_to_index` and `index_to_pubkey` caches from validators list.
+%%%%%%% Changes from base #1 to side #2
+ // ArrayListUnmanaged is used in ct VariableListType
++const ValidatorList = std.ArrayListUnmanaged(Validator);
+ 
+ pub const Index2PubkeyCache = std.ArrayList(PublicKey);
+ 
+ /// consumers should deinit each item inside Index2PubkeyCache
+%%%%%%% Changes from base #2 to side #3
+ 
+ /// Map from pubkey to validator index
+ pub const PubkeyIndexMap = std.AutoHashMap([48]u8, u64);
+ 
+ /// Map from validator index to pubkey
+ pub const Index2PubkeyCache = std.ArrayList(blst.PublicKey);
+ 
+ /// Populate `pubkey_to_index` and `index_to_pubkey` caches from validators list.
 pub fn syncPubkeys(
     validators: []const Validator,
     pubkey_to_index: *PubkeyIndexMap,
