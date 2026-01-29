@@ -425,6 +425,25 @@ declare class BeaconStateView {
   processSlots(slot: number, options?: ProcessSlotsOpts): BeaconStateView;
 }
 
+declare class PublicKey {
+  static fromBytes(bytes: Uint8Array): PublicKey;
+  toBytesCompress(): Uint8Array;
+  toBytes(): Uint8Array;
+}
+
+declare class Signature {
+  static fromBytes(bytes: Uint8Array): Signature;
+  toBytesCompress(): Uint8Array;
+  toBytes(): Uint8Array;
+}
+
+interface Blst {
+  PublicKey: typeof PublicKey;
+  Signature: typeof Signature;
+  verify(msg: Uint8Array, pk: PublicKey, sig: Signature): boolean;
+  fastAggregateVerify(msg: Uint8Array, pks: PublicKey[], sig: Signature): boolean;
+}
+
 type Bindings = {
   pool: {
     ensureCapacity: (capacity: number) => void;
