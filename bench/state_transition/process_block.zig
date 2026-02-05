@@ -18,6 +18,7 @@ const BeaconBlock = fork_types.BeaconBlock;
 const BeaconBlockBody = fork_types.BeaconBlockBody;
 const AnyBeaconState = fork_types.AnyBeaconState;
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
+const PubkeyIndexMap = state_transition.PubkeyIndexMap(ValidatorIndex);
 const Withdrawals = types.capella.Withdrawals.Type;
 const WithdrawalsResult = state_transition.WithdrawalsResult;
 const BlockExternalData = state_transition.BlockExternalData;
@@ -505,14 +506,33 @@ fn runBenchmark(
     }
 
     const validators = try beacon_state.?.validatorsSlice(allocator);
+%%%%%%% Changes from base #1 to side #2
+     const beacon_config = config.BeaconConfig.init(chain_config, (try beacon_state.genesisValidatorsRoot()).*);
+-    var pubkey_index_map = state_transition.PubkeyIndexMap.init(allocator);
+-    defer pubkey_index_map.deinit();
+-    var index_pubkey_cache = state_transition.Index2PubkeyCache.init(allocator);
+-    defer index_pubkey_cache.deinit();
+-
++    const pubkey_index_map = try PubkeyIndexMap.init(allocator);
++    const index_pubkey_cache = try allocator.create(state_transition.Index2PubkeyCache);
++    index_pubkey_cache.* = state_transition.Index2PubkeyCache.init(allocator);
+     const validators = try beacon_state.validatorsSlice(allocator);
+%%%%%%% Changes from base #2 to side #3
+     const beacon_config = config.BeaconConfig.init(chain_config, (try beacon_state.genesisValidatorsRoot()).*);
+     var pubkey_index_map = state_transition.PubkeyIndexMap.init(allocator);
+     defer pubkey_index_map.deinit();
+     var index_pubkey_cache = state_transition.Index2PubkeyCache.init(allocator);
+     defer index_pubkey_cache.deinit();
+ 
+     const validators = try beacon_state.validatorsSlice(allocator);
     defer allocator.free(validators);
 
-    try state_transition.syncPubkeys(validators, &pubkey_index_map, &index_pubkey_cache);
+    try state_transition.syncPubkeys(validators, pubkey_index_map, index_pubkey_cache);
 
     const cached_state = try CachedBeaconState.createCachedBeaconState(allocator, beacon_state.?, .{
         .config = &beacon_config,
-        .index_to_pubkey = &index_pubkey_cache,
-        .pubkey_to_index = &pubkey_index_map,
+        .index_to_pubkey = index_pubkey_cache,
+        .pubkey_to_index = pubkey_index_map,
     }, .{ .skip_sync_committee_cache = !comptime fork.gte(.altair), .skip_sync_pubkeys = false });
     beacon_state = null;
     defer {

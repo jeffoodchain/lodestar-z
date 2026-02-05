@@ -16,6 +16,7 @@ const CachedBeaconStateAllForks = state_transition.CachedBeaconStateAllForks;
 const BeaconStateAllForks = state_transition.BeaconStateAllForks;
 const EpochTransitionCache = state_transition.EpochTransitionCache;
 const ValidatorIndex = types.primitive.ValidatorIndex.Type;
+const PubkeyIndexMap = state_transition.PubkeyIndexMap(ValidatorIndex);
 const slotFromStateBytes = @import("utils.zig").slotFromStateBytes;
 const loadState = @import("utils.zig").loadState;
 
@@ -693,14 +694,31 @@ fn runBenchmark(
     }
 
     const validators = try beacon_state.?.validatorsSlice(allocator);
+%%%%%%% Changes from base #1 to side #2
+-    var pubkey_index_map = state_transition.PubkeyIndexMap.init(allocator);
+-    defer pubkey_index_map.deinit();
+-    var index_pubkey_cache = state_transition.Index2PubkeyCache.init(allocator);
+-    defer index_pubkey_cache.deinit();
++    const pubkey_index_map = try PubkeyIndexMap.init(allocator);
++    const index_pubkey_cache = try allocator.create(state_transition.Index2PubkeyCache);
++    index_pubkey_cache.* = state_transition.Index2PubkeyCache.init(allocator);
+ 
+     const validators = try beacon_state.validatorsSlice(allocator);
+%%%%%%% Changes from base #2 to side #3
+     var pubkey_index_map = state_transition.PubkeyIndexMap.init(allocator);
+     defer pubkey_index_map.deinit();
+     var index_pubkey_cache = state_transition.Index2PubkeyCache.init(allocator);
+     defer index_pubkey_cache.deinit();
+ 
+     const validators = try beacon_state.validatorsSlice(allocator);
     defer allocator.free(validators);
 
-    try state_transition.syncPubkeys(validators, &pubkey_index_map, &index_pubkey_cache);
+    try state_transition.syncPubkeys(validators, pubkey_index_map, index_pubkey_cache);
 
     const immutable_data = state_transition.EpochCacheImmutableData{
         .config = &beacon_config,
-        .index_to_pubkey = &index_pubkey_cache,
-        .pubkey_to_index = &pubkey_index_map,
+        .index_to_pubkey = index_pubkey_cache,
+        .pubkey_to_index = pubkey_index_map,
     };
 
     const cached_state = try CachedBeaconState.createCachedBeaconState(allocator, beacon_state.?, immutable_data, .{
