@@ -51,11 +51,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
     });
 
-    const dep_zapi = b.dependency("zapi", .{
-        .optimize = optimize,
-        .target = target,
-    });
-
     const dep_zbench = b.dependency("zbench", .{
         .optimize = optimize,
         .target = target,
@@ -492,6 +487,196 @@ pub fn build(b: *std.Build) void {
     tls_install_lib_bindings.dependOn(&install_lib_bindings.step);
     b.getInstallStep().dependOn(&install_lib_bindings.step);
 
+%%%%%%%%%%% Changes from base #1 to side #2
+     const module_bench_process_block = b.createModule(.{
+         .root_source_file = b.path("bench/state_transition/process_block.zig"),
+         .target = target,
+         .optimize = optimize,
+         .strip = false,
+         .omit_frame_pointer = false,
+     });
+     b.modules.put(b.dupe("bench_process_block"), module_bench_process_block) catch @panic("OOM");
+ 
+     const exe_bench_process_block = b.addExecutable(.{
+         .name = "bench_process_block",
+         .root_module = module_bench_process_block,
+     });
+ 
+     const install_exe_bench_process_block = b.addInstallArtifact(exe_bench_process_block, .{});
+ 
+     const tls_install_exe_bench_process_block = b.step("build-exe:bench_process_block", "Install the bench_process_block executable");
+     tls_install_exe_bench_process_block.dependOn(&install_exe_bench_process_block.step);
+     b.getInstallStep().dependOn(&install_exe_bench_process_block.step);
+ 
+     const run_exe_bench_process_block = b.addRunArtifact(exe_bench_process_block);
+     if (b.args) |args| run_exe_bench_process_block.addArgs(args);
+     const tls_run_exe_bench_process_block = b.step("run:bench_process_block", "Run the bench_process_block executable");
+     tls_run_exe_bench_process_block.dependOn(&run_exe_bench_process_block.step);
+ 
+     const module_bench_process_epoch = b.createModule(.{
+         .root_source_file = b.path("bench/state_transition/process_epoch.zig"),
+         .target = target,
+         .optimize = optimize,
+     });
+     b.modules.put(b.dupe("bench_process_epoch"), module_bench_process_epoch) catch @panic("OOM");
+ 
+     const exe_bench_process_epoch = b.addExecutable(.{
+         .name = "bench_process_epoch",
+         .root_module = module_bench_process_epoch,
+     });
+ 
+     const install_exe_bench_process_epoch = b.addInstallArtifact(exe_bench_process_epoch, .{});
+ 
+     const tls_install_exe_bench_process_epoch = b.step("build-exe:bench_process_epoch", "Install the bench_process_epoch executable");
+     tls_install_exe_bench_process_epoch.dependOn(&install_exe_bench_process_epoch.step);
+     b.getInstallStep().dependOn(&install_exe_bench_process_epoch.step);
+ 
+     const run_exe_bench_process_epoch = b.addRunArtifact(exe_bench_process_epoch);
+     if (b.args) |args| run_exe_bench_process_epoch.addArgs(args);
+     const tls_run_exe_bench_process_epoch = b.step("run:bench_process_epoch", "Run the bench_process_epoch executable");
+     tls_run_exe_bench_process_epoch.dependOn(&run_exe_bench_process_epoch.step);
+ 
+     const module_bindings = b.createModule(.{
+         .root_source_file = b.path("bindings/napi/root.zig"),
+         .target = target,
+         .optimize = optimize,
+     });
+     b.modules.put(b.dupe("bindings"), module_bindings) catch @panic("OOM");
+ 
+     const lib_bindings = b.addLibrary(.{
+         .name = "bindings",
+         .root_module = module_bindings,
+         .linkage = .dynamic,
+     });
+ 
+     lib_bindings.linker_allow_shlib_undefined = true;
+     const install_lib_bindings = b.addInstallArtifact(lib_bindings, .{
+         .dest_sub_path = "bindings.node",
+     });
+ 
+     const tls_install_lib_bindings = b.step("build-lib:bindings", "Install the bindings library");
+     tls_install_lib_bindings.dependOn(&install_lib_bindings.step);
+     b.getInstallStep().dependOn(&install_lib_bindings.step);
+ 
+%%%%%%%%%%% Changes from base #2 to side #3
+     const module_bench_process_block = b.createModule(.{
+         .root_source_file = b.path("bench/state_transition/process_block.zig"),
+         .target = target,
+         .optimize = optimize,
+     });
+     b.modules.put(b.dupe("bench_process_block"), module_bench_process_block) catch @panic("OOM");
+ 
+     const exe_bench_process_block = b.addExecutable(.{
+         .name = "bench_process_block",
+         .root_module = module_bench_process_block,
+     });
+ 
+     const install_exe_bench_process_block = b.addInstallArtifact(exe_bench_process_block, .{});
+ 
+     const tls_install_exe_bench_process_block = b.step("build-exe:bench_process_block", "Install the bench_process_block executable");
+     tls_install_exe_bench_process_block.dependOn(&install_exe_bench_process_block.step);
+     b.getInstallStep().dependOn(&install_exe_bench_process_block.step);
+ 
+     const run_exe_bench_process_block = b.addRunArtifact(exe_bench_process_block);
+     if (b.args) |args| run_exe_bench_process_block.addArgs(args);
+     const tls_run_exe_bench_process_block = b.step("run:bench_process_block", "Run the bench_process_block executable");
+     tls_run_exe_bench_process_block.dependOn(&run_exe_bench_process_block.step);
+ 
+     const module_bench_process_epoch = b.createModule(.{
+         .root_source_file = b.path("bench/state_transition/process_epoch.zig"),
+         .target = target,
+         .optimize = optimize,
+     });
+     b.modules.put(b.dupe("bench_process_epoch"), module_bench_process_epoch) catch @panic("OOM");
+ 
+     const exe_bench_process_epoch = b.addExecutable(.{
+         .name = "bench_process_epoch",
+         .root_module = module_bench_process_epoch,
+     });
+ 
+     const install_exe_bench_process_epoch = b.addInstallArtifact(exe_bench_process_epoch, .{});
+ 
+     const tls_install_exe_bench_process_epoch = b.step("build-exe:bench_process_epoch", "Install the bench_process_epoch executable");
+     tls_install_exe_bench_process_epoch.dependOn(&install_exe_bench_process_epoch.step);
+     b.getInstallStep().dependOn(&install_exe_bench_process_epoch.step);
+ 
+     const run_exe_bench_process_epoch = b.addRunArtifact(exe_bench_process_epoch);
+     if (b.args) |args| run_exe_bench_process_epoch.addArgs(args);
+     const tls_run_exe_bench_process_epoch = b.step("run:bench_process_epoch", "Run the bench_process_epoch executable");
+     tls_run_exe_bench_process_epoch.dependOn(&run_exe_bench_process_epoch.step);
+ 
+%%%%%%%%%%% Changes from base #3 to side #4
+     const module_bench_process_block = b.createModule(.{
+         .root_source_file = b.path("bench/state_transition/process_block.zig"),
+         .target = target,
+         .optimize = optimize,
+         .strip = false,
+         .omit_frame_pointer = false,
+     });
+     b.modules.put(b.dupe("bench_process_block"), module_bench_process_block) catch @panic("OOM");
+ 
+     const exe_bench_process_block = b.addExecutable(.{
+         .name = "bench_process_block",
+         .root_module = module_bench_process_block,
+     });
+ 
+     const install_exe_bench_process_block = b.addInstallArtifact(exe_bench_process_block, .{});
+ 
+     const tls_install_exe_bench_process_block = b.step("build-exe:bench_process_block", "Install the bench_process_block executable");
+     tls_install_exe_bench_process_block.dependOn(&install_exe_bench_process_block.step);
+     b.getInstallStep().dependOn(&install_exe_bench_process_block.step);
+ 
+     const run_exe_bench_process_block = b.addRunArtifact(exe_bench_process_block);
+     if (b.args) |args| run_exe_bench_process_block.addArgs(args);
+     const tls_run_exe_bench_process_block = b.step("run:bench_process_block", "Run the bench_process_block executable");
+     tls_run_exe_bench_process_block.dependOn(&run_exe_bench_process_block.step);
+ 
+     const module_bench_process_epoch = b.createModule(.{
+         .root_source_file = b.path("bench/state_transition/process_epoch.zig"),
+         .target = target,
+         .optimize = optimize,
+     });
+     b.modules.put(b.dupe("bench_process_epoch"), module_bench_process_epoch) catch @panic("OOM");
+ 
+     const exe_bench_process_epoch = b.addExecutable(.{
+         .name = "bench_process_epoch",
+         .root_module = module_bench_process_epoch,
+     });
+ 
+     const install_exe_bench_process_epoch = b.addInstallArtifact(exe_bench_process_epoch, .{});
+ 
+     const tls_install_exe_bench_process_epoch = b.step("build-exe:bench_process_epoch", "Install the bench_process_epoch executable");
+     tls_install_exe_bench_process_epoch.dependOn(&install_exe_bench_process_epoch.step);
+     b.getInstallStep().dependOn(&install_exe_bench_process_epoch.step);
+ 
+     const run_exe_bench_process_epoch = b.addRunArtifact(exe_bench_process_epoch);
+     if (b.args) |args| run_exe_bench_process_epoch.addArgs(args);
+     const tls_run_exe_bench_process_epoch = b.step("run:bench_process_epoch", "Run the bench_process_epoch executable");
+     tls_run_exe_bench_process_epoch.dependOn(&run_exe_bench_process_epoch.step);
+ 
+-    const module_bindings = b.createModule(.{
+-        .root_source_file = b.path("bindings/napi/root.zig"),
+-        .target = target,
+-        .optimize = optimize,
+-    });
+-    b.modules.put(b.dupe("bindings"), module_bindings) catch @panic("OOM");
+-
+-    const lib_bindings = b.addLibrary(.{
+-        .name = "bindings",
+-        .root_module = module_bindings,
+-        .linkage = .dynamic,
+-    });
+-
+-    lib_bindings.linker_allow_shlib_undefined = true;
+-    const install_lib_bindings = b.addInstallArtifact(lib_bindings, .{
+-        .dest_sub_path = "bindings.node",
+-    });
+-
+-    const tls_install_lib_bindings = b.step("build-lib:bindings", "Install the bindings library");
+-    tls_install_lib_bindings.dependOn(&install_lib_bindings.step);
+-    b.getInstallStep().dependOn(&install_lib_bindings.step);
+-
+%%%%%%%%%%% Changes from base #4 to side #5
     const tls_run_test = b.step("test", "Run all tests");
 
     const test_constants = b.addTest(.{
@@ -844,20 +1029,6 @@ pub fn build(b: *std.Build) void {
     tls_run_test_bench_process_epoch.dependOn(&run_test_bench_process_epoch.step);
     tls_run_test.dependOn(&run_test_bench_process_epoch.step);
 
-    const test_bindings = b.addTest(.{
-        .name = "bindings",
-        .root_module = module_bindings,
-        .filters = b.option([][]const u8, "bindings.filters", "bindings test filters") orelse &[_][]const u8{},
-    });
-    const install_test_bindings = b.addInstallArtifact(test_bindings, .{});
-    const tls_install_test_bindings = b.step("build-test:bindings", "Install the bindings test");
-    tls_install_test_bindings.dependOn(&install_test_bindings.step);
-
-    const run_test_bindings = b.addRunArtifact(test_bindings);
-    const tls_run_test_bindings = b.step("test:bindings", "Run the bindings test");
-    tls_run_test_bindings.dependOn(&run_test_bindings.step);
-    tls_run_test.dependOn(&run_test_bindings.step);
-
     const module_int = b.createModule(.{
         .root_source_file = b.path("test/int/era/root.zig"),
         .target = target,
@@ -965,7 +1136,6 @@ pub fn build(b: *std.Build) void {
     module_hashing.addImport("hashtree", dep_hashtree.module("hashtree"));
 
     module_fork_types.addImport("consensus_types", module_consensus_types);
-    module_fork_types.addImport("constants", module_constants);
     module_fork_types.addImport("config", module_config);
     module_fork_types.addImport("persistent_merkle_tree", module_persistent_merkle_tree);
     module_fork_types.addImport("preset", module_preset);
@@ -1073,22 +1243,83 @@ pub fn build(b: *std.Build) void {
     module_bindings.addImport("zapi:napi", dep_zapi.module("napi"));
 
 %%%%%%% Changes from base #1 to side #1
-+++++++ Contents of side #2
-    module_int.addImport("build_options", options_module_build_options);
-    module_int.addImport("state_transition", module_state_transition);
-%%%%%%% Changes from base #2 to side #3
+%%%%%%%%%%% Changes from base #1 to side #2
+     module_bench_process_block.addImport("state_transition", module_state_transition);
+     module_bench_process_block.addImport("fork_types", module_fork_types);
+     module_bench_process_block.addImport("consensus_types", module_consensus_types);
+     module_bench_process_block.addImport("config", module_config);
+     module_bench_process_block.addImport("zbench", dep_zbench.module("zbench"));
+     module_bench_process_block.addImport("persistent_merkle_tree", module_persistent_merkle_tree);
+     module_bench_process_block.addImport("download_era_options", options_module_download_era_options);
+     module_bench_process_block.addImport("era", module_era);
+ 
+     module_bench_process_epoch.addImport("state_transition", module_state_transition);
+     module_bench_process_epoch.addImport("fork_types", module_fork_types);
+     module_bench_process_epoch.addImport("consensus_types", module_consensus_types);
+     module_bench_process_epoch.addImport("config", module_config);
+     module_bench_process_epoch.addImport("zbench", dep_zbench.module("zbench"));
+     module_bench_process_epoch.addImport("persistent_merkle_tree", module_persistent_merkle_tree);
+     module_bench_process_epoch.addImport("download_era_options", options_module_download_era_options);
+     module_bench_process_epoch.addImport("era", module_era);
+ 
      module_bindings.addImport("blst", dep_blst.module("blst"));
      module_bindings.addImport("persistent_merkle_tree", module_persistent_merkle_tree);
      module_bindings.addImport("ssz", module_ssz);
      module_bindings.addImport("consensus_types", module_consensus_types);
      module_bindings.addImport("preset", module_preset);
      module_bindings.addImport("config", module_config);
+-    module_bindings.addImport("constants", module_constants);
+     module_bindings.addImport("fork_types", module_fork_types);
      module_bindings.addImport("state_transition", module_state_transition);
      module_bindings.addImport("zapi:napi", dep_zapi.module("napi"));
  
--    module_int.addImport("build_options", options_module_build_options);
--    module_int.addImport("state_transition", module_state_transition);
->>>>>>> Conflict 1 of 1 ends
+%%%%%%%%%%% Changes from base #2 to side #3
+     module_bench_process_block.addImport("state_transition", module_state_transition);
+     module_bench_process_block.addImport("consensus_types", module_consensus_types);
+     module_bench_process_block.addImport("config", module_config);
+     module_bench_process_block.addImport("zbench", dep_zbench.module("zbench"));
+ 
+     module_bench_process_epoch.addImport("state_transition", module_state_transition);
+     module_bench_process_epoch.addImport("consensus_types", module_consensus_types);
+     module_bench_process_epoch.addImport("config", module_config);
+     module_bench_process_epoch.addImport("zbench", dep_zbench.module("zbench"));
+ 
+     module_int.addImport("build_options", options_module_build_options);
+     module_int.addImport("state_transition", module_state_transition);
+%%%%%%%%%%% Changes from base #3 to side #4
+     module_bench_process_block.addImport("state_transition", module_state_transition);
+     module_bench_process_block.addImport("fork_types", module_fork_types);
+     module_bench_process_block.addImport("consensus_types", module_consensus_types);
+     module_bench_process_block.addImport("config", module_config);
+     module_bench_process_block.addImport("zbench", dep_zbench.module("zbench"));
+     module_bench_process_block.addImport("persistent_merkle_tree", module_persistent_merkle_tree);
+     module_bench_process_block.addImport("download_era_options", options_module_download_era_options);
+     module_bench_process_block.addImport("era", module_era);
+ 
+     module_bench_process_epoch.addImport("state_transition", module_state_transition);
+     module_bench_process_epoch.addImport("fork_types", module_fork_types);
+     module_bench_process_epoch.addImport("consensus_types", module_consensus_types);
+     module_bench_process_epoch.addImport("config", module_config);
+     module_bench_process_epoch.addImport("zbench", dep_zbench.module("zbench"));
+     module_bench_process_epoch.addImport("persistent_merkle_tree", module_persistent_merkle_tree);
+     module_bench_process_epoch.addImport("download_era_options", options_module_download_era_options);
+     module_bench_process_epoch.addImport("era", module_era);
+ 
+-    module_bindings.addImport("blst", dep_blst.module("blst"));
+-    module_bindings.addImport("persistent_merkle_tree", module_persistent_merkle_tree);
+-    module_bindings.addImport("ssz", module_ssz);
+-    module_bindings.addImport("consensus_types", module_consensus_types);
+-    module_bindings.addImport("preset", module_preset);
+-    module_bindings.addImport("config", module_config);
+-    module_bindings.addImport("fork_types", module_fork_types);
+-    module_bindings.addImport("state_transition", module_state_transition);
+-    module_bindings.addImport("zapi:napi", dep_zapi.module("napi"));
+-
+%%%%%%%%%%% Changes from base #4 to side #5
+     module_int.addImport("build_options", options_module_build_options);
+     module_int.addImport("ssz", module_ssz);
+     module_int.addImport("state_transition", module_state_transition);
+>>>>>>>>>>> Conflict 2 of 2 ends
     module_int.addImport("config", module_config);
     module_int.addImport("download_era_options", options_module_download_era_options);
     module_int.addImport("era", module_era);
