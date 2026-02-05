@@ -1061,7 +1061,7 @@ pub fn register(env: napi.Env, exports: napi.Value) !void {
             method(0, BeaconStateView_getFinalizedRootProof),
             // method(1, BeaconStateView_getSyncCommitteesWitness),
             method(1, BeaconStateView_getSingleProof),
-            method(1, BeaconStateView_createMultiProof),
+            // method(1, BeaconStateView_createMultiProof),
 
             method(0, BeaconStateView_computeUnrealizedCheckpoints),
 
