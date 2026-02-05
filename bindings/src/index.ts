@@ -305,7 +305,7 @@ interface SyncCommitteeCache {
 }
 
 interface ProcessSlotsOpts {
-  dontTransferCache?: boolean;
+  transferCache?: boolean;
 }
 
 interface ProposerRewards {
