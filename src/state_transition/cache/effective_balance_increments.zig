@@ -42,8 +42,8 @@ pub fn effectiveBalanceIncrementsInit(allocator: Allocator, validator_count: usi
 -
 +++++++ Contents of side #2
 pub fn getEffectiveBalanceIncrementsWithLen(allocator: Allocator, validator_count: usize) !EffectiveBalanceIncrements {
-    const len = 1024 * @divFloor(validator_count + 1024, 1024);
-    return getEffectiveBalanceIncrementsZeroed(allocator, len);
+    const capacity = 1024 * @divFloor(validator_count + 1024, 1024);
+    return getEffectiveBalanceIncrementsZeroed(allocator, validator_count, capacity);
 }
 
 pub fn getEffectiveBalanceIncrements(allocator: Allocator, state: BeaconState) !EffectiveBalanceIncrements {
