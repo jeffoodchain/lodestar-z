@@ -4,7 +4,7 @@ import {computeEpochAtSlot} from "@lodestar/state-transition";
 import {ssz} from "@lodestar/types";
 import {beforeAll, describe, expect, it} from "vitest";
 import bindings from "../src/index.ts";
-import { getFirstEraFilePath } from "./eraFiles.ts";
+import {getFirstEraFilePath} from "./eraFiles.ts";
 
 describe("BeaconStateView", () => {
   let state: InstanceType<typeof bindings.BeaconStateView>;
