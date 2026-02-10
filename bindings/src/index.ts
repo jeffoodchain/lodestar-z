@@ -1083,6 +1083,10 @@ type Bindings = {
   shuffle: {
     innerShuffleList: (out: Uint32Array, seed: Uint8Array, rounds: number, forwards: boolean) => void;
   };
+  metrics: {
+    init: () => void;
+    scrapeMetrics: () => string;
+  };
   BeaconStateView: typeof BeaconStateView;
   blst: Blst;
   deinit: () => void;
