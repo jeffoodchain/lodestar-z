@@ -23,8 +23,7 @@ pub fn Metrics_scrapeMetrics(env: napi.Env, _: napi.CallbackInfo(0)) !napi.Value
     var buf = std.ArrayList(u8).init(allocator);
     defer buf.deinit();
     try state_transition.metrics.write(buf.writer());
-    try buf.append(0);
-    return env.createStringUtf8(buf.items[0 .. buf.items.len - 1]);
+    return env.createStringUtf8(buf.items);
 }
 
 pub fn deinit() void {
